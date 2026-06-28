@@ -13,8 +13,8 @@ DATASET_DIR = ROOT_DIR / 'dataset'
 FEATURES_DIR = Path(__file__).parent / 'features'
 IMG_SIZE = (256, 256)
 BATCH_SIZE = 32
-NUM_CLASSES = 10
-EPOCHS = 10
+NUM_CLASSES = 4
+EPOCHS = 100
 
 # ── Mode selection ────────────────────────────────────────────────────────────
 USE_FEATURES = (FEATURES_DIR / 'X_train.npy').exists()
