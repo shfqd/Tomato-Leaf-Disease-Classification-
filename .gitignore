@@ -216,3 +216,55 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# =========================
+# ML / Deep Learning models (Tomato Leaf Project)
+# =========================
+*.h5
+*.keras
+*.pkl
+*.joblib
+*.sav
+
+# Large dataset folders (DO NOT push to GitHub)
+dataset/
+data/
+images/
+plantvillage/
+
+# =========================
+# Frontend (HTML / CSS / JS / Node tools)
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build output (if you use frontend tools later)
+dist/
+build/
+
+# =========================
+# Flask / Web project extras
+# =========================
+uploads/
+static/uploads/
+instance/
+
+# Environment variables (extra safety)
+.env
+.env.*
+
+# =========================
+# IDE / Editors (extra coverage)
+# =========================
+.vscode/
+.idea/
+.cursor/
+.antigravity/
+
+# =========================
+# OS junk
+# =========================
+.DS_Store
+Thumbs.db

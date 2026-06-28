@@ -1,1 +1,1 @@
-shafiqute
+shafikote
