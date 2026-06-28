@@ -51,7 +51,14 @@ def _equalize_channel(arr, clip_limit=HIST_CLIP_LIMIT):
     return lut[arr]
 
 
-# ─── Step 5: Auto White Balance — Gray World Assumption ───────────────────
+# ─── Step 5: Gamma Correction ──────────────────────────────────────────────────
+def apply_gamma_correction(img, gamma=GAMMA):
+    arr = np.array(img).astype(np.float32) / 255.0
+    arr = np.power(arr, 1.0 / gamma)
+    return Image.fromarray((arr * 255).clip(0, 255).astype(np.uint8))
+
+
+# ─── Step 6: White Balance — Gray World Assumption ───────────────────
 def apply_white_balance(img):
     arr = np.array(img).astype(np.float32)
     for c in range(3):
@@ -65,13 +72,6 @@ def apply_histogram_equalization(img):
     ycbcr = np.array(img.convert("YCbCr"))
     ycbcr[:, :, 0] = _equalize_channel(ycbcr[:, :, 0])
     return Image.fromarray(ycbcr, "YCbCr").convert("RGB")
-
-
-# ─── Step 4: Gamma Correction ──────────────────────────────────────────────────
-def apply_gamma_correction(img, gamma=GAMMA):
-    arr = np.array(img).astype(np.float32) / 255.0
-    arr = np.power(arr, 1.0 / gamma)
-    return Image.fromarray((arr * 255).clip(0, 255).astype(np.uint8))
 
 
 # ─── Step 7: Unsharp Masking ─────────────────────────────────────────────
