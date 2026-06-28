@@ -25,8 +25,8 @@ train_dataset = tf.keras.utils.image_dataset_from_directory(
     seed=42,
 )
 
-val_dataset = tf.keras.utils.image_dataset_from_directory(
-    DATASET_DIR / 'val',
+test_dataset = tf.keras.utils.image_dataset_from_directory(
+    DATASET_DIR / 'test',
     image_size=IMG_SIZE,
     batch_size=BATCH_SIZE,
     label_mode='categorical',
@@ -35,7 +35,7 @@ val_dataset = tf.keras.utils.image_dataset_from_directory(
 
 AUTOTUNE = tf.data.AUTOTUNE
 train_dataset = train_dataset.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
-val_dataset = val_dataset.cache().prefetch(buffer_size=AUTOTUNE)
+test_dataset = test_dataset.cache().prefetch(buffer_size=AUTOTUNE)
 
 model = keras.Sequential([
     keras.layers.Input(shape=(256, 256, 3)),
@@ -57,7 +57,7 @@ model = keras.Sequential([
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 model.summary()
 
-history = model.fit(train_dataset, validation_data=val_dataset, epochs=EPOCHS, verbose=1)
+history = model.fit(train_dataset, validation_data=test_dataset, epochs=EPOCHS, verbose=1)
 
 import json
 history_path = Path(__file__).parent / 'training_history.json'
