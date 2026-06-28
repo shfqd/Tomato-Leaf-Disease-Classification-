@@ -22,6 +22,17 @@ def ensure_rgb(img):
     return img.convert("RGB")
 
 
+# ─── Step 2 : Aspect-Ratio-Preserving Resize with Letterboxing ─────────────
+def resize_with_letterbox(img):
+    w, h = img.size
+    scale = min(IMG_SIZE[0] / w, IMG_SIZE[1] / h)
+    new_w, new_h = int(w * scale), int(h * scale)
+    img = img.resize((new_w, new_h), Image.LANCZOS)
+    canvas = Image.new("RGB", IMG_SIZE, PAD_COLOR)
+    canvas.paste(img, ((IMG_SIZE[0] - new_w) // 2, (IMG_SIZE[1] - new_h) // 2))
+    return canvas
+
+
 # ─── Step 3: Pre-Denoise (mild Gaussian blur before equalization) ───────────────
 def apply_pre_denoise(img):
     return img.filter(ImageFilter.GaussianBlur(radius=0.5))
@@ -38,6 +49,16 @@ def _equalize_channel(arr, clip_limit=HIST_CLIP_LIMIT):
     cdf_min = cdf[cdf > 0].min()
     lut = np.round((cdf - cdf_min) / (arr.size - cdf_min) * 255).clip(0, 255).astype(np.uint8)
     return lut[arr]
+
+
+# ─── Step 5: Auto White Balance — Gray World Assumption ───────────────────
+def apply_white_balance(img):
+    arr = np.array(img).astype(np.float32)
+    for c in range(3):
+        mean_c = arr[:, :, c].mean()
+        if mean_c > 0:
+            arr[:, :, c] = arr[:, :, c] * (128.0 / mean_c)
+    return Image.fromarray(arr.clip(0, 255).astype(np.uint8))
 
 
 def apply_histogram_equalization(img):
@@ -61,27 +82,6 @@ def apply_unsharp_mask(img):
 # ─── Normalization Stats ────────────────────────────────────────────────
 def normalize_to_float(img):
     return np.array(img).astype(np.float32) / 255.0
-
-
-# ─── Step 2 : Aspect-Ratio-Preserving Resize with Letterboxing ─────────────
-def resize_with_letterbox(img):
-    w, h = img.size
-    scale = min(IMG_SIZE[0] / w, IMG_SIZE[1] / h)
-    new_w, new_h = int(w * scale), int(h * scale)
-    img = img.resize((new_w, new_h), Image.LANCZOS)
-    canvas = Image.new("RGB", IMG_SIZE, PAD_COLOR)
-    canvas.paste(img, ((IMG_SIZE[0] - new_w) // 2, (IMG_SIZE[1] - new_h) // 2))
-    return canvas
-
-
-# ─── Step 5: Auto White Balance — Gray World Assumption ───────────────────
-def apply_white_balance(img):
-    arr = np.array(img).astype(np.float32)
-    for c in range(3):
-        mean_c = arr[:, :, c].mean()
-        if mean_c > 0:
-            arr[:, :, c] = arr[:, :, c] * (128.0 / mean_c)
-    return Image.fromarray(arr.clip(0, 255).astype(np.uint8))
 
 
 def preprocess(img):
