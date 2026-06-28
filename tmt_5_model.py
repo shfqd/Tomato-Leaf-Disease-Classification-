@@ -1,8 +1,5 @@
 import tensorflow as tf
 from tensorflow import keras
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 import os
 from pathlib import Path
 
