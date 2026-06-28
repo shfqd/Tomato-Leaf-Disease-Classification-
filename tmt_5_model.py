@@ -7,8 +7,8 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 DATASET_DIR = ROOT_DIR / 'dataset'
 IMG_SIZE = (256, 256)
 BATCH_SIZE = 32
-NUM_CLASSES = 10
-EPOCHS = 10
+NUM_CLASSES = 4
+EPOCHS = 100
 
 if not (DATASET_DIR / 'train').exists():
     raise FileNotFoundError(
