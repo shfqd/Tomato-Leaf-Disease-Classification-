@@ -3,6 +3,10 @@ from tensorflow import keras
 import numpy as np
 import json
 import os
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from sklearn.manifold import TSNE
 from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -84,4 +88,42 @@ np.save(FEATURES_DIR / 'y_test.npy', y_test)
 print(f"\nFeatures saved to: {FEATURES_DIR}")
 print(f"  X_train: {X_train.shape}  y_train: {y_train.shape}")
 print(f"  X_test:  {X_test.shape}   y_test:  {y_test.shape}")
+
+# ── t-SNE visualisation ───────────────────────────────────────────────────────
+print("\nGenerating t-SNE visualisation (this may take a minute)...")
+
+# Use a random subset so t-SNE stays fast (max 3000 samples)
+MAX_SAMPLES = 3000
+X_all = np.concatenate([X_train, X_test], axis=0)
+y_all = np.concatenate([y_train, y_test], axis=0)
+labels_int = np.argmax(y_all, axis=1)
+
+if len(X_all) > MAX_SAMPLES:
+    rng = np.random.default_rng(42)
+    idx = rng.choice(len(X_all), MAX_SAMPLES, replace=False)
+    X_vis, y_vis = X_all[idx], labels_int[idx]
+else:
+    X_vis, y_vis = X_all, labels_int
+
+tsne = TSNE(n_components=2, perplexity=30, random_state=42, max_iter=1000)
+coords = tsne.fit_transform(X_vis)
+
+colors = plt.cm.get_cmap('tab10', len(class_names))
+fig, ax = plt.subplots(figsize=(12, 8))
+for i, name in enumerate(class_names):
+    mask = y_vis == i
+    ax.scatter(coords[mask, 0], coords[mask, 1],
+               color=colors(i), label=name, alpha=0.6, s=15)
+
+ax.set_title('t-SNE Visualisation of Extracted Features (MobileNetV2)')
+ax.set_xlabel('t-SNE Component 1')
+ax.set_ylabel('t-SNE Component 2')
+ax.legend(title='Classes', bbox_to_anchor=(1.01, 1), loc='upper left', fontsize=8)
+plt.tight_layout()
+
+plot_path = Path(__file__).parent / 'tsne_features.png'
+plt.savefig(plot_path, dpi=150)
+plt.close()
+print(f"t-SNE plot saved to: {plot_path}")
+
 print("\nDone. Run model_training/train.py next.")
