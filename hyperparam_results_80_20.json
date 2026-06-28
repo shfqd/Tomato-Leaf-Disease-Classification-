@@ -1,0 +1,47 @@
+[
+  {
+    "learning_rate": 0.01,
+    "epochs": 10,
+    "val_accuracy": 0.9107499718666077
+  },
+  {
+    "learning_rate": 0.005,
+    "epochs": 10,
+    "val_accuracy": 0.9322500228881836
+  },
+  {
+    "learning_rate": 0.001,
+    "epochs": 20,
+    "val_accuracy": 0.9664999842643738
+  },
+  {
+    "learning_rate": 0.0005,
+    "epochs": 20,
+    "val_accuracy": 0.9677500128746033
+  },
+  {
+    "learning_rate": 0.0001,
+    "epochs": 30,
+    "val_accuracy": 0.9700000286102295
+  },
+  {
+    "learning_rate": 0.0002,
+    "epochs": 30,
+    "val_accuracy": 0.9729999899864197
+  },
+  {
+    "learning_rate": 3e-05,
+    "epochs": 40,
+    "val_accuracy": 0.9605000019073486
+  },
+  {
+    "learning_rate": 0.0001,
+    "epochs": 50,
+    "val_accuracy": 0.9722499847412109
+  },
+  {
+    "learning_rate": 0.001,
+    "epochs": 50,
+    "val_accuracy": 0.972000002861023
+  }
+]
