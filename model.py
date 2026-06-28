@@ -1,1 +1,1 @@
-shapek gemuk
+shapek gemuk busuk
