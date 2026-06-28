@@ -2,18 +2,20 @@ import tensorflow as tf
 from tensorflow import keras
 import numpy as np
 import json
-import os
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
 from pathlib import Path
 
-ROOT_DIR = Path(__file__).resolve().parents[1]
+# ── Change this for each experiment: '7030', '8020', or '9010' ───────────────
+SPLIT = '7030'
+
+ROOT_DIR    = Path(__file__).resolve().parents[1]
 DATASET_DIR = ROOT_DIR / 'dataset'
-FEATURES_DIR = Path(__file__).parent / 'features'
-IMG_SIZE = (224, 224)   # MobileNetV2 native input size
-BATCH_SIZE = 32
+FEATURES_DIR = Path(__file__).parent / f'features_{SPLIT}'
+IMG_SIZE    = (224, 224)
+BATCH_SIZE  = 32
 
 if not (DATASET_DIR / 'train').exists():
     raise FileNotFoundError(
@@ -23,7 +25,6 @@ if not (DATASET_DIR / 'train').exists():
 
 FEATURES_DIR.mkdir(exist_ok=True)
 
-# Load datasets (no shuffle so labels stay aligned)
 train_ds = tf.keras.utils.image_dataset_from_directory(
     DATASET_DIR / 'train',
     image_size=IMG_SIZE,
@@ -40,13 +41,11 @@ test_ds = tf.keras.utils.image_dataset_from_directory(
 )
 
 class_names = train_ds.class_names
-print(f"Classes ({len(class_names)}): {class_names}")
+print(f"Split: {SPLIT}  |  Classes ({len(class_names)}): {class_names}")
 
-# Save class names so train.py can restore them
 with open(FEATURES_DIR / 'class_names.json', 'w') as f:
     json.dump(class_names, f, indent=2)
 
-# Build feature extractor: MobileNetV2 pretrained on ImageNet, no top
 backbone = keras.applications.MobileNetV2(
     input_shape=(*IMG_SIZE, 3),
     include_top=False,
@@ -54,8 +53,6 @@ backbone = keras.applications.MobileNetV2(
     weights='imagenet',
 )
 backbone.trainable = False
-
-# Preprocessing wrapper expected by MobileNetV2
 preprocess = keras.applications.mobilenet_v2.preprocess_input
 
 
@@ -69,9 +66,7 @@ def extract(dataset, split_name):
         labels.append(batch_labels.numpy())
         print(f"  [{split_name}] batch {i + 1}/{total}", end='\r')
     print()
-    features = np.concatenate(features, axis=0)
-    labels = np.concatenate(labels, axis=0)
-    return features, labels
+    return np.concatenate(features, axis=0), np.concatenate(labels, axis=0)
 
 
 print("Extracting train features...")
@@ -82,8 +77,8 @@ X_test, y_test = extract(test_ds, 'test')
 
 np.save(FEATURES_DIR / 'X_train.npy', X_train)
 np.save(FEATURES_DIR / 'y_train.npy', y_train)
-np.save(FEATURES_DIR / 'X_test.npy', X_test)
-np.save(FEATURES_DIR / 'y_test.npy', y_test)
+np.save(FEATURES_DIR / 'X_test.npy',  X_test)
+np.save(FEATURES_DIR / 'y_test.npy',  y_test)
 
 print(f"\nFeatures saved to: {FEATURES_DIR}")
 print(f"  X_train: {X_train.shape}  y_train: {y_train.shape}")
@@ -92,7 +87,6 @@ print(f"  X_test:  {X_test.shape}   y_test:  {y_test.shape}")
 # ── t-SNE visualisation ───────────────────────────────────────────────────────
 print("\nGenerating t-SNE visualisation (this may take a minute)...")
 
-# Use a random subset so t-SNE stays fast (max 3000 samples)
 MAX_SAMPLES = 3000
 X_all = np.concatenate([X_train, X_test], axis=0)
 y_all = np.concatenate([y_train, y_test], axis=0)
@@ -115,13 +109,13 @@ for i, name in enumerate(class_names):
     ax.scatter(coords[mask, 0], coords[mask, 1],
                color=colors(i), label=name, alpha=0.6, s=15)
 
-ax.set_title('t-SNE Visualisation of Extracted Features (MobileNetV2)')
+ax.set_title(f't-SNE Visualisation of Extracted Features (MobileNetV2) — Split {SPLIT}')
 ax.set_xlabel('t-SNE Component 1')
 ax.set_ylabel('t-SNE Component 2')
 ax.legend(title='Classes', bbox_to_anchor=(1.01, 1), loc='upper left', fontsize=8)
 plt.tight_layout()
 
-plot_path = Path(__file__).parent / 'tsne_features.png'
+plot_path = Path(__file__).parent / f'tsne_features_{SPLIT}.png'
 plt.savefig(plot_path, dpi=150)
 plt.close()
 print(f"t-SNE plot saved to: {plot_path}")
