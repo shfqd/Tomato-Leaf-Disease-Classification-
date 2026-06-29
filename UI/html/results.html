@@ -45,19 +45,20 @@
     <h1 class="results__title">Model Results</h1>
     <p class="results__lead">
       Training and evaluation graphs across all three dataset splits.
-      Filter by split or click any graph to enlarge it.
+      Filter by category or click any graph to enlarge it.
     </p>
 
-    <!-- Split filter -->
-    <div class="filter" role="tablist" aria-label="Filter by dataset split">
-      <button class="filter__btn is-active" data-filter="all">All Splits</button>
-      <button class="filter__btn" data-filter="70_30">70 / 30</button>
-      <button class="filter__btn" data-filter="80_20">80 / 20</button>
-      <button class="filter__btn" data-filter="90_10">90 / 10</button>
+    <!-- Category filter -->
+    <div class="filter" role="tablist" aria-label="Filter by graph category">
+      <button class="filter__btn is-active" data-filter="accuracy">Accuracy &amp; Loss</button>
+      <button class="filter__btn" data-filter="precision">Precision</button>
+      <button class="filter__btn" data-filter="recall">Recall</button>
+      <button class="filter__btn" data-filter="hyperparam">Hyperparameter Tuning</button>
+      <button class="filter__btn" data-filter="tsne">Feature Space (t-SNE)</button>
     </div>
 
     <!-- Accuracy & Loss -->
-    <section class="results__section">
+    <section class="results__section" data-category="accuracy">
       <h2 class="results__heading">Accuracy &amp; Loss</h2>
       <div class="graph-grid">
         <figure class="graph" data-split="70_30">
@@ -100,7 +101,7 @@
     </section>
 
     <!-- Precision -->
-    <section class="results__section">
+    <section class="results__section" data-category="precision">
       <h2 class="results__heading">Precision</h2>
       <div class="graph-grid">
         <figure class="graph" data-split="70_30">
@@ -119,7 +120,7 @@
     </section>
 
     <!-- Recall -->
-    <section class="results__section">
+    <section class="results__section" data-category="recall">
       <h2 class="results__heading">Recall</h2>
       <div class="graph-grid">
         <figure class="graph" data-split="70_30">
@@ -138,7 +139,7 @@
     </section>
 
     <!-- Hyperparameter tuning -->
-    <section class="results__section">
+    <section class="results__section" data-category="hyperparam">
       <h2 class="results__heading">Hyperparameter Tuning</h2>
       <div class="graph-grid">
         <figure class="graph" data-split="70_30">
@@ -161,7 +162,7 @@
     </section>
 
     <!-- t-SNE features -->
-    <section class="results__section">
+    <section class="results__section" data-category="tsne">
       <h2 class="results__heading">Feature Space (t-SNE)</h2>
       <div class="graph-grid">
         <figure class="graph" data-split="70_30">
