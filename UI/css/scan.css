@@ -383,6 +383,140 @@ img {
   box-shadow: 0 0 18px rgba(125, 204, 88, 0.4);
 }
 
+.upload-card__btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ------------------------------ Result card ----------------------- */
+.result-card {
+  position: relative;
+  width: 100%;
+  max-width: 620px;
+  margin-top: clamp(24px, 4vh, 36px);
+  background-color: var(--card);
+  border-radius: 28px;
+  padding: clamp(28px, 4vw, 40px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+  color: var(--card-title);
+}
+
+.result-card[hidden] {
+  display: none !important;
+}
+
+.result-card__heading {
+  font-family: "Poppins", sans-serif;
+  font-size: clamp(1.2rem, 2.4vw, 1.55rem);
+  font-weight: 700;
+  color: var(--card-title);
+  text-align: center;
+  margin-bottom: clamp(18px, 3vh, 26px);
+}
+
+.result-top {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(13, 84, 50, 0.18);
+  margin-bottom: 22px;
+}
+
+.result-icon {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.result-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  opacity: 0.7;
+}
+
+.result-class {
+  font-size: 1.45rem;
+  font-weight: 700;
+  margin-top: 3px;
+  text-transform: capitalize;
+  word-break: break-word;
+}
+
+.result-confidence {
+  margin-top: 5px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0f6b3f;
+}
+
+.bars-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  opacity: 0.7;
+  margin-bottom: 14px;
+}
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 11px;
+}
+
+.bar-name {
+  width: 165px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: capitalize;
+  flex-shrink: 0;
+}
+
+.bar-track {
+  flex: 1;
+  height: 10px;
+  background: rgba(13, 84, 50, 0.12);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  width: 0;
+  transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bar-fill.top {
+  background: linear-gradient(90deg, #0d5432, #7dcc58);
+}
+
+.bar-fill.normal {
+  background: linear-gradient(90deg, #4f7a5f, #9bbf8f);
+}
+
+.bar-pct {
+  width: 46px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.error-box {
+  background: #fdecea;
+  border: 1px solid #f5c2bd;
+  border-radius: 10px;
+  padding: 14px 16px;
+  color: #b3261e;
+  font-size: 0.9rem;
+}
+
 /* ------------------------------ Footer ----------------------------- */
 .footer {
   position: relative;

@@ -96,11 +96,25 @@ class _Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def _send_html(self, path: Path):
+    _CONTENT_TYPES = {
+        '.html': 'text/html; charset=utf-8',
+        '.css' : 'text/css; charset=utf-8',
+        '.js'  : 'application/javascript; charset=utf-8',
+        '.json': 'application/json; charset=utf-8',
+        '.png' : 'image/png',
+        '.jpg' : 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.gif' : 'image/gif',
+        '.svg' : 'image/svg+xml',
+        '.ico' : 'image/x-icon',
+    }
+
+    def _send_file(self, path: Path):
         data = path.read_bytes()
+        ctype = self._CONTENT_TYPES.get(path.suffix.lower(), 'application/octet-stream')
         self.send_response(200)
         self._cors()
-        self.send_header('Content-Type', 'text/html; charset=utf-8')
+        self.send_header('Content-Type', ctype)
         self.send_header('Content-Length', str(len(data)))
         self.end_headers()
         self.wfile.write(data)
@@ -110,16 +124,41 @@ class _Handler(BaseHTTPRequestHandler):
         self._cors()
         self.end_headers()
 
+    def _redirect(self, location: str):
+        self.send_response(302)
+        self.send_header('Location', location)
+        self._cors()
+        self.end_headers()
+
     def do_GET(self):
-        if self.path in ('/', '/test.html'):
-            html = BASE_DIR / 'test.html'
-            if html.exists():
-                self._send_html(html)
+        # Strip query string / fragment if present.
+        path = self.path.split('?', 1)[0].split('#', 1)[0]
+
+        # Home page → redirect to the scan UI at its real path so that the
+        # page's relative asset links (../css, ../js, ../images) resolve.
+        if path in ('/', '/index.html', '/scan', '/scan.html'):
+            self._redirect('/UI/html/scan.html')
+            return
+
+        if path == '/favicon.ico':
+            icon = BASE_DIR / 'UI' / 'images' / 'logo.png'
+            if icon.exists():
+                self._send_file(icon)
             else:
-                self._send_json({'error': 'test.html not found'}, 404)
-        elif self.path == '/favicon.ico':
-            self.send_response(204)
-            self.end_headers()
+                self.send_response(204)
+                self.end_headers()
+            return
+
+        # Serve any static asset that lives inside the project directory.
+        target = (BASE_DIR / path.lstrip('/')).resolve()
+        try:
+            target.relative_to(BASE_DIR)  # guard against path traversal
+        except ValueError:
+            self._send_json({'error': 'Forbidden'}, 403)
+            return
+
+        if target.is_file():
+            self._send_file(target)
         else:
             self._send_json({'error': 'Not found'}, 404)
 
@@ -142,7 +181,7 @@ class _Handler(BaseHTTPRequestHandler):
 if __name__ == '__main__':
     _load_model()
     httpd = HTTPServer(('127.0.0.1', PORT), _Handler)
-    print(f'Server running  →  http://127.0.0.1:{PORT}')
+    print(f'Server running  →  http://127.0.0.1:{PORT}  (scan UI)')
     print('Press Ctrl+C to stop.\n')
     try:
         httpd.serve_forever()
