@@ -13,24 +13,30 @@ IMG_SIZE   = (224, 224)
 
 SPLITS = ["70_30", "80_20", "90_10"]
 
-HYPERPARAM_COMBOS = [
-    {'learning_rate': 0.01,   'epochs': 10},
-    {'learning_rate': 0.005,  'epochs': 10},
-    {'learning_rate': 0.001,  'epochs': 20},
-    {'learning_rate': 0.0005, 'epochs': 20},
-    {'learning_rate': 0.0001, 'epochs': 30},
-    {'learning_rate': 0.0002, 'epochs': 30},
-    {'learning_rate': 3e-5,   'epochs': 40},
-    {'learning_rate': 1e-4,   'epochs': 50},
-    {'learning_rate': 1e-3,   'epochs': 50},
-]
+CHECKPOINTS  = [10, 50, 100]   # epoch numbers to record for hyperparameter comparison
+INITIAL_LR   = 0.001           # starting learning rate
+DECAY_STEPS  = 1000            # number of optimizer steps over which LR decays
+DECAY_RATE   = 0.96            # fraction LR is multiplied by every DECAY_STEPS steps
 # ───────────────────────────────────────────────────────────────────────────────
+
+lr_schedule = keras.optimizers.schedules.ExponentialDecay(
+    initial_learning_rate=INITIAL_LR,
+    decay_steps=DECAY_STEPS,
+    decay_rate=DECAY_RATE,
+    staircase=False,   # continuous decay (not step-wise)
+)
 
 
 class LearningRateLogger(keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
-        lr = float(keras.backend.get_value(self.model.optimizer.learning_rate))
-        logs['learning_rate'] = lr
+        optimizer = self.model.optimizer
+        if isinstance(optimizer.learning_rate,
+                      keras.optimizers.schedules.LearningRateSchedule):
+            lr = float(optimizer.learning_rate(optimizer.iterations))
+        else:
+            lr = float(keras.backend.get_value(optimizer.learning_rate))
+        if logs is not None:
+            logs['learning_rate'] = lr
 
 
 def build_classifier(input_dim, num_classes):
@@ -69,7 +75,7 @@ def train_split(split):
 
         model = build_classifier(X_train.shape[1], num_classes)
         model.compile(
-            optimizer='adam',
+            optimizer=keras.optimizers.Adam(learning_rate=lr_schedule),
             loss='categorical_crossentropy',
             metrics=[
                 'accuracy',
@@ -132,7 +138,7 @@ def train_split(split):
             keras.layers.Dense(num_classes, activation='softmax'),
         ])
         model.compile(
-            optimizer='adam',
+            optimizer=keras.optimizers.Adam(learning_rate=lr_schedule),
             loss='categorical_crossentropy',
             metrics=[
                 'accuracy',
@@ -160,39 +166,27 @@ def train_split(split):
     model.save(str(model_path))
     print(f"  Model  saved → {model_path.name}")
 
-    # ── Hyperparameter search ─────────────────────────────────────────────────
-    if not use_features:
-        print("  Skipping hyperparameter search (features not available).")
-        return
+    # ── Extract checkpoint results from training history ──────────────────────
+    val_acc_hist = history.history.get('val_accuracy', [])
+    lr_hist      = history.history.get('learning_rate', [])
 
-    print(f"\n  Running hyperparameter search ({len(HYPERPARAM_COMBOS)} combos)...")
     hp_results = []
-    for combo in HYPERPARAM_COMBOS:
-        lr     = combo['learning_rate']
-        ep     = combo['epochs']
-        print(f"    lr={lr}, epochs={ep} ...", end=' ', flush=True)
-
-        m = build_classifier(X_train.shape[1], num_classes)
-        m.compile(
-            optimizer=keras.optimizers.Adam(learning_rate=lr),
-            loss='categorical_crossentropy',
-            metrics=['accuracy'],
-        )
-        h = m.fit(
-            X_train, y_train,
-            validation_data=(X_test, y_test),
-            epochs=ep,
-            batch_size=BATCH_SIZE,
-            verbose=0,
-        )
-        val_acc = max(h.history['val_accuracy'])
-        hp_results.append({'learning_rate': lr, 'epochs': ep, 'val_accuracy': val_acc})
-        print(f"val_accuracy={val_acc:.4f}")
+    for ep in CHECKPOINTS:
+        idx = ep - 1   # history is 0-based
+        if idx < len(val_acc_hist):
+            hp_results.append({
+                'epochs':        ep,
+                'learning_rate': lr_hist[idx] if idx < len(lr_hist) else None,
+                'val_accuracy':  val_acc_hist[idx],
+            })
 
     hp_path = BASE_DIR / f"hyperparam_results_{split}.json"
     with open(hp_path, 'w') as f:
         json.dump(hp_results, f, indent=2)
-    print(f"  Hyperparam results saved → {hp_path.name}")
+    print(f"  Hyperparam checkpoints saved → {hp_path.name}")
+    for r in hp_results:
+        lr_str = f"{r['learning_rate']:.2e}" if r['learning_rate'] else 'N/A'
+        print(f"    epoch {r['epochs']:>3}  lr={lr_str}  val_accuracy={r['val_accuracy']:.4f}")
 
 
 def main():

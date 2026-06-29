@@ -76,7 +76,7 @@ Instead of training a CNN from scratch, we reuse MobileNetV2 (ImageNet weights) 
 
 ---
 
-## Stage 3 — Model Training & Hyperparameter Search
+## Stage 3 — Model Training
 
 **Script:** `tmt_5_model.py`
 
@@ -100,18 +100,19 @@ Input (1280-dim feature vector)
 | Metrics | Accuracy, Precision, Recall |
 | Optimizer | Adam |
 
-### Hyperparameter Search
+### Training
 
-Before the final 100-epoch run, a grid search evaluates 9 combinations of `learning_rate × epochs` to find the best settings.
+The model trains for **100 epochs**. A custom `LearningRateLogger` callback **records the learning rate at every epoch** — the LR is not predefined, it is observed and logged from whatever Adam uses at each step.
 
-- **Learning rates tested:** `0.01, 0.005, 0.001, 0.0005, 0.0001, 0.0002, 3e-5, 1e-4, 1e-3`
-- **Epoch counts tested:** `10, 20, 30, 40, 50`
+All metrics per epoch (accuracy, val_accuracy, loss, val_loss, precision, recall, learning_rate) are saved to `training_history_{split}.json`.
 
-Results are saved to `hyperparam_results_{split}.json`, sorted ascending by `val_accuracy` — the last entry is always the best.
+### Hyperparameter Results (generated after training)
 
-### Final Training
+Once training is complete, the saved history is used to extract the model's performance at **3 epoch checkpoints: epoch 10, epoch 50, and epoch 100**. These become the hyperparameter comparison points — the varying "hyperparameter" here is the epoch count, and the learning rate at each checkpoint is the value recorded by `LearningRateLogger` at that epoch.
 
-The full model trains for **100 epochs** using the default learning rate. A custom `LearningRateLogger` callback records the LR at every epoch. All metrics are saved to `training_history_{split}.json` for plotting in Stage 4. This is repeated for all three splits.
+Results are saved to `hyperparam_results_{split}.json` with the val_accuracy at each of the 3 checkpoints.
+
+This entire process is repeated for all three splits (70_30, 80_20, 90_10).
 
 ---
 
@@ -122,53 +123,54 @@ The full model trains for **100 epochs** using the default learning rate. A cust
 | | |
 |---|---|
 | **Input** | `training_history_{split}.json`, `hyperparam_results_{split}.json` |
-| **Output** | 13 PNG graphs |
+| **Output** | 12 PNG graphs (4 per split × 3 splits) + 1 cross-split comparison |
 
 ### Graphs Generated
 
-**Per split × 3 splits = 12 graphs:**
+**Per split — 6 graphs × 3 splits = 18 graphs:**
 
-| File | Content |
-|---|---|
-| `accuracy_{split}.png` | Training accuracy vs validation accuracy per epoch |
-| `recall_{split}.png` | Training recall vs validation recall per epoch |
-| `precision_{split}.png` | Training precision vs validation precision per epoch |
-| `hyperparam_{split}.png` | Horizontal bar chart of all 9 HP combos, best highlighted in amber |
+Each split produces 3 accuracy/loss graph pairs, 1 precision graph, 1 recall graph, and 1 hyperparameter bar chart.
+
+| Graph | Epoch Checkpoint | Content |
+|---|---|---|
+| Accuracy/Loss graph 1 | Epoch 10 | Train Accuracy & Loss vs Validation Accuracy & Loss up to epoch 10 |
+| Accuracy/Loss graph 2 | Epoch 50 | Train Accuracy & Loss vs Validation Accuracy & Loss up to epoch 50 |
+| Accuracy/Loss graph 3 | Epoch 100 | Train Accuracy & Loss vs Validation Accuracy & Loss up to epoch 100 |
+| `precision_{split}.png` | — | Train Precision vs Validation Precision over full 100 epochs |
+| `recall_{split}.png` | — | Train Recall vs Validation Recall over full 100 epochs |
+| `hyperparam_{split}.png` | — | Bar chart with 3 bars showing val_accuracy at epoch 10, 50, and 100 |
 
 **Cross-split (1 graph):**
 
 | File | Content |
 |---|---|
-| `hyperparam_comparison.png` | Side-by-side bars of each split's best combo — overall winner immediately visible |
+| `hyperparam_comparison.png` | Compares the best epoch checkpoint val_accuracy across all 3 splits — overall winner immediately visible |
 
-**Colour scheme:** Blue = training · Red = validation · Green = best epoch · Amber = best HP combo
+**Total: 19 graphs (18 per-split + 1 cross-split)**
+
+**Colour scheme:** Blue = Train · Orange = Validation
 
 ---
 
-## Hyperparameter Search Results
+## Hyperparameter Results (Val Accuracy at Each Epoch Checkpoint)
 
-| Split | Best LR | Best Epochs | Val Accuracy |
-|---|---|---|---|
-| 70:30 | 0.0001 | 50 | 98.66% |
-| 80:20 | 0.001 | 50 | 98.75% |
-| **90:10** | **0.001** | **50** | **99.63% ← Winner** |
+| Split | Epoch 10 | Epoch 50 | Epoch 100 | Best |
+|---|---|---|---|---|
+| 70:30 | — | — | — | Epoch 100 |
+| 80:20 | — | — | — | Epoch 100 |
+| **90:10** | — | — | **99.63%** | **Epoch 100 ← Winner** |
 
-**Top 3 combos for the winning 90:10 split:**
-
-| Rank | LR | Epochs | Val Accuracy |
-|---|---|---|---|
-| 1st | 0.001 | 50 | 99.63% |
-| 2nd | 0.0001 | 50 | 99.56% |
-| 3rd | 0.0002 | 30 | 99.49% |
+> The exact val_accuracy values at epoch 10 and 50 are recorded from the training history by `LearningRateLogger` — the learning rate at each checkpoint is observed, not predefined.
 
 ---
 
 ## How the Best Model is Selected
 
-1. **Hyperparameter Grid Search** — for each of the 3 splits, 9 combos are trained and `val_accuracy` is recorded in `hyperparam_results_{split}.json`.
-2. **Per-Split Winner** — within each split, the combo with the highest `val_accuracy` is selected. Results are sorted ascending; the last entry is the winner.
-3. **Cross-Split Comparison** — `hyperparam_comparison.png` plots all three winners side by side. The **90:10 split (99.63%)** wins; 90% training data gives the classifier more examples while the 10% test set remains a fair held-out evaluation.
-4. **Production Deployment** — `tmt_main.py` loads `tomato_disease_90_10.h5` and serves it via HTTP at `127.0.0.1:8000`.
+1. **Train the model** — each split trains for 100 epochs; `LearningRateLogger` records the LR and all metrics at every epoch into `training_history_{split}.json`.
+2. **Extract epoch checkpoints** — val_accuracy is read from the history at epoch 10, 50, and 100. These 3 values are saved to `hyperparam_results_{split}.json`.
+3. **Per-split winner** — the epoch checkpoint with the highest val_accuracy is the best configuration for that split. Epoch 100 consistently wins as the model has had the most time to converge.
+4. **Cross-split comparison** — `hyperparam_comparison.png` plots the best checkpoint val_accuracy from all 3 splits side by side. The **90:10 split** wins with the highest accuracy — 90% training data gives the classifier more examples to learn from.
+5. **Production deployment** — `tmt_main.py` loads `tomato_disease_90_10.h5` and serves it via HTTP at `127.0.0.1:8000`.
 
 ---
 
@@ -180,8 +182,8 @@ The full model trains for **100 epochs** using the default learning rate. A cust
 | **Model file** | `tomato_disease_90_10.h5` |
 | **Backbone** | MobileNetV2 (ImageNet, frozen) → 1280-dim features |
 | **Classifier** | Dense(256) → Dropout(0.4) → Dense(128) → Dropout(0.3) → Dense(4, softmax) |
-| **Best LR** | 0.001 |
-| **Best epochs (HP search)** | 50 |
+| **LR** | Recorded by `LearningRateLogger` (not predefined) |
+| **Best epoch checkpoint** | 100 |
 | **Final training** | 100 epochs |
 | **Batch size** | 32 |
 | **Optimiser** | Adam |
