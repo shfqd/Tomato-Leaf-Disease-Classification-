@@ -1,3 +1,5 @@
+import os
+import sys
 import tensorflow as tf
 from tensorflow import keras
 import numpy as np
@@ -5,6 +7,7 @@ import json
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+from PIL import Image, UnidentifiedImageError
 from sklearn.manifold import TSNE
 from pathlib import Path
 
@@ -16,7 +19,51 @@ BATCH_SIZE = 32
 MAX_SAMPLES = 3000
 
 SPLITS = ["70_30", "80_20", "90_10"]
+IMG_EXTS     = {'.jpg', '.jpeg', '.png', '.bmp', '.gif'}
+TF_SAFE_FMTS = {'JPEG', 'PNG', 'GIF', 'BMP'}
 # ───────────────────────────────────────────────────────────────────────────────
+
+
+def _wp(p):
+    """Return \\?\ prefixed string on Windows to bypass the 260-char path limit."""
+    if sys.platform == 'win32':
+        return '\\\\?\\' + str(Path(p).resolve())
+    return str(p)
+
+
+def clean_invalid_images(root: Path):
+    """
+    Walk root, validate every image with PIL.
+    Files in a TF-unsupported format (e.g. WebP) are converted to JPEG in-place.
+    Truly unreadable files are deleted.
+    """
+    converted = removed = ok = 0
+    for dirpath, _, filenames in os.walk(_wp(root)):
+        for fname in filenames:
+            ext = Path(fname).suffix.lower()
+            if ext not in IMG_EXTS:
+                continue
+            fpath = os.path.join(dirpath, fname)
+            try:
+                with Image.open(fpath) as img:
+                    img.load()  # force full decode — catches hidden corruption
+                    # Convert if: format is TF-unsupported, OR a .jpg file holds non-JPEG data
+                    needs_convert = (img.format not in TF_SAFE_FMTS) or \
+                                    (ext in {'.jpg', '.jpeg'} and img.format != 'JPEG')
+                    if needs_convert:
+                        img.convert('RGB').save(fpath, format='JPEG', quality=95)
+                        converted += 1
+                    else:
+                        ok += 1
+            except Exception:
+                try:
+                    os.remove(fpath)
+                except Exception:
+                    pass
+                removed += 1
+    if converted or removed:
+        print(f"  Image cleanup: {converted} converted, {removed} removed, {ok} ok")
+    return converted + removed
 
 
 def load_backbone():
@@ -87,6 +134,11 @@ def process_split(split, backbone):
         return
 
     features_dir.mkdir(exist_ok=True)
+
+    print("  Scanning for invalid/unsupported images...")
+    n_fixed = clean_invalid_images(dataset_dir)
+    if n_fixed == 0:
+        print("  All images OK.")
 
     train_ds = tf.keras.utils.image_dataset_from_directory(
         dataset_dir / 'train',

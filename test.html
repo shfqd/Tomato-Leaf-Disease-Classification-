@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tomato Disease Detector</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f0f2f5;
+      color: #1a1a1a;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #b71c1c 0%, #c62828 60%, #e53935 100%);
+      color: white;
+      padding: 28px 24px 24px;
+      text-align: center;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+    }
+    header h1 { font-size: 1.9rem; font-weight: 700; letter-spacing: 0.3px; }
+    header p  { margin-top: 6px; font-size: 0.95rem; opacity: 0.88; }
+
+    /* ── Layout ── */
+    main {
+      max-width: 780px;
+      margin: 36px auto;
+      padding: 0 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 28px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.09);
+    }
+    .card h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 18px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Upload zone ── */
+    #dropZone {
+      border: 2px dashed #d0d0d0;
+      border-radius: 10px;
+      padding: 40px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    #dropZone:hover, #dropZone.dragover {
+      border-color: #c62828;
+      background: #fff5f5;
+    }
+    #dropZone .icon { font-size: 2.6rem; }
+    #dropZone p {
+      margin-top: 10px;
+      font-size: 0.95rem;
+      color: #777;
+    }
+    #dropZone span {
+      color: #c62828;
+      font-weight: 600;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    /* ── Preview ── */
+    #previewWrap {
+      display: none;
+      margin-top: 20px;
+      text-align: center;
+    }
+    #preview {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+      object-fit: contain;
+    }
+    #changeBtn {
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 0.85rem;
+      color: #c62828;
+      cursor: pointer;
+      background: none;
+      border: none;
+      text-decoration: underline;
+    }
+
+    /* ── Predict button ── */
+    #predictBtn {
+      display: block;
+      width: 100%;
+      margin-top: 22px;
+      padding: 14px;
+      background: linear-gradient(135deg, #c62828, #e53935);
+      color: white;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      letter-spacing: 0.3px;
+    }
+    #predictBtn:hover:not(:disabled)  { opacity: 0.92; transform: translateY(-1px); }
+    #predictBtn:active:not(:disabled) { transform: translateY(0); }
+    #predictBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Spinner ── */
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Result card ── */
+    #resultCard { display: none; }
+
+    .result-top {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding-bottom: 22px;
+      border-bottom: 1px solid #f0f0f0;
+      margin-bottom: 22px;
+    }
+    .result-icon { font-size: 3.2rem; }
+    .result-label { font-size: 0.8rem; color: #999; text-transform: uppercase; letter-spacing: 0.5px; }
+    .result-class {
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-top: 3px;
+      word-break: break-word;
+    }
+    .result-confidence {
+      margin-top: 5px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #c62828;
+    }
+
+    /* ── Probability bars ── */
+    .bars-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 14px;
+    }
+    .bar-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 11px;
+    }
+    .bar-name {
+      width: 175px;
+      font-size: 0.88rem;
+      color: #444;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex-shrink: 0;
+    }
+    .bar-track {
+      flex: 1;
+      height: 10px;
+      background: #f0f0f0;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 6px;
+      width: 0;
+      transition: width 0.7s cubic-bezier(.4,0,.2,1);
+    }
+    .bar-fill.top    { background: linear-gradient(90deg, #c62828, #ff5722); }
+    .bar-fill.normal { background: linear-gradient(90deg, #1565c0, #42a5f5); }
+    .bar-pct {
+      width: 46px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #444;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* ── Error ── */
+    .error-box {
+      background: #fff5f5;
+      border: 1px solid #ffcdd2;
+      border-radius: 8px;
+      padding: 14px 16px;
+      color: #c62828;
+      font-size: 0.9rem;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 24px 16px;
+      font-size: 0.8rem;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>&#127813; Tomato Disease Detector</h1>
+  <p>Upload a tomato leaf image and get an instant disease prediction</p>
+</header>
+
+<main>
+
+  <!-- Upload card -->
+  <div class="card">
+    <h2>Upload Image</h2>
+
+    <div id="dropZone">
+      <div class="icon">&#128247;</div>
+      <p>Drag &amp; drop your image here, or <span id="browseBtn">browse</span></p>
+      <p style="margin-top:6px; font-size:0.82rem;">Supports JPG, PNG, JPEG</p>
+    </div>
+    <input type="file" id="fileInput" accept="image/jpeg,image/png,image/jpg" hidden>
+
+    <div id="previewWrap">
+      <img id="preview" alt="Preview">
+      <br>
+      <button id="changeBtn">&#8635; Choose a different image</button>
+    </div>
+
+    <button id="predictBtn" disabled>Predict Disease</button>
+  </div>
+
+  <!-- Result card -->
+  <div class="card" id="resultCard">
+    <h2>Prediction Result</h2>
+    <div id="resultBody"></div>
+  </div>
+
+</main>
+
+<footer>Tomato Leaf Disease Classification &mdash; MobileNetV2 Feature Extractor</footer>
+
+<script>
+  // If opened as a file (file://), fall back to the server address
+  const SERVER = window.location.protocol === 'file:'
+    ? 'http://127.0.0.1:8000'
+    : window.location.origin;
+
+  const dropZone   = document.getElementById('dropZone');
+  const fileInput  = document.getElementById('fileInput');
+  const browseBtn  = document.getElementById('browseBtn');
+  const previewWrap= document.getElementById('previewWrap');
+  const preview    = document.getElementById('preview');
+  const changeBtn  = document.getElementById('changeBtn');
+  const predictBtn = document.getElementById('predictBtn');
+  const resultCard = document.getElementById('resultCard');
+  const resultBody = document.getElementById('resultBody');
+
+  let selectedFile = null;
+
+  // ── File selection ──────────────────────────────────────────────────────────
+  browseBtn.addEventListener('click', () => fileInput.click());
+  changeBtn.addEventListener('click', () => {
+    fileInput.value = '';
+    fileInput.click();
+  });
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) loadFile(fileInput.files[0]);
+  });
+
+  // ── Drag & drop ─────────────────────────────────────────────────────────────
+  dropZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropZone.classList.add('dragover');
+  });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) loadFile(file);
+  });
+
+  function loadFile(file) {
+    selectedFile = file;
+    const reader = new FileReader();
+    reader.onload = e => {
+      preview.src = e.target.result;
+      dropZone.style.display = 'none';
+      previewWrap.style.display = 'block';
+      predictBtn.disabled = false;
+      resultCard.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // ── Predict ─────────────────────────────────────────────────────────────────
+  predictBtn.addEventListener('click', async () => {
+    if (!selectedFile) return;
+
+    predictBtn.disabled = true;
+    predictBtn.innerHTML = '<span class="spinner"></span>Analysing...';
+    resultCard.style.display = 'none';
+
+    try {
+      const base64 = await toBase64(selectedFile);
+      const res    = await fetch(`${SERVER}/predict`, {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body   : JSON.stringify({ image: base64 }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        showError(data.error || 'Prediction failed.');
+      } else {
+        showResult(data);
+      }
+    } catch (err) {
+      showError('Could not reach the server. Make sure tmt_main.py --serve is running.');
+    } finally {
+      predictBtn.disabled = false;
+      predictBtn.innerHTML = 'Predict Disease';
+    }
+  });
+
+  // ── Helpers ─────────────────────────────────────────────────────────────────
+  function toBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload  = e => resolve(e.target.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function classIcon(name) {
+    const n = name.toLowerCase();
+    if (n.includes('healthy'))  return '&#129001;'; // green heart
+    if (n.includes('bacterial'))return '&#129440;'; // microbe
+    if (n.includes('mold'))     return '&#127811;'; // mushroom
+    if (n.includes('mosaic') || n.includes('virus')) return '&#9888;&#65039;'; // warning
+    return '&#127813;'; // tomato
+  }
+
+  function showResult(data) {
+    const probs   = data.all_probabilities;
+    const topName = data.predicted_class;
+    const conf    = data.confidence;
+
+    // Sort classes by probability descending
+    const sorted = Object.entries(probs).sort((a, b) => b[1] - a[1]);
+
+    let barsHtml = sorted.map(([name, pct]) => {
+      const isTop = name === topName;
+      return `
+        <div class="bar-row">
+          <div class="bar-name" title="${name}">${name.replace(/_/g, ' ')}</div>
+          <div class="bar-track">
+            <div class="bar-fill ${isTop ? 'top' : 'normal'}"
+                 data-pct="${pct}" style="width:0%"></div>
+          </div>
+          <div class="bar-pct">${pct.toFixed(1)}%</div>
+        </div>`;
+    }).join('');
+
+    resultBody.innerHTML = `
+      <div class="result-top">
+        <div class="result-icon">${classIcon(topName)}</div>
+        <div>
+          <div class="result-label">Predicted Class</div>
+          <div class="result-class">${topName.replace(/_/g, ' ')}</div>
+          <div class="result-confidence">Confidence: ${conf.toFixed(1)}%</div>
+        </div>
+      </div>
+      <div class="bars-title">All Class Probabilities</div>
+      ${barsHtml}`;
+
+    resultCard.style.display = 'block';
+    resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Animate bars after paint
+    requestAnimationFrame(() => {
+      document.querySelectorAll('.bar-fill').forEach(el => {
+        el.style.width = el.dataset.pct + '%';
+      });
+    });
+  }
+
+  function showError(msg) {
+    resultBody.innerHTML = `<div class="error-box">&#9888; ${msg}</div>`;
+    resultCard.style.display = 'block';
+  }
+</script>
+
+</body>
+</html>
