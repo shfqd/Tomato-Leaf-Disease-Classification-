@@ -1,19 +1,18 @@
-
 import random
 import shutil
 from pathlib import Path
 
 # ─── Configuration ─────────────────────────────────────────────────────────────
 BASE_DIR  = Path(__file__).resolve().parent.parent
-INPUT_DIR = BASE_DIR / "dataset_preprocessed"
+INPUT_DIR = BASE_DIR / "dataset" / "Original Dataset"
 CLASSES   = ["healthy", "Bacterial_spot", "Leaf_Mold", "Tomato_mosaic_virus"]
 IMG_EXTS  = {".jpg", ".jpeg", ".png"}
 SEED      = 42
 
 SPLITS = {
-    "dataset_split_70_30": 0.70,
-    "dataset_split_80_20": 0.80,
-    "dataset_split_90_10": 0.90,
+    "dataset/dataset_split_70_30": 0.70,
+    "dataset/dataset_split_80_20": 0.80,
+    "dataset/dataset_split_90_10": 0.90,
 }
 # ───────────────────────────────────────────────────────────────────────────────
 
@@ -24,8 +23,8 @@ def get_image_paths(folder):
 
 def split_class(cls, output_dir, train_ratio):
     src_dir  = INPUT_DIR / cls
-    train_dir = output_dir / cls / "train"
-    test_dir  = output_dir / cls / "test"
+    train_dir = output_dir / "train" / cls
+    test_dir  = output_dir / "test" / cls
     train_dir.mkdir(parents=True, exist_ok=True)
     test_dir.mkdir(parents=True, exist_ok=True)
 
@@ -84,9 +83,10 @@ def main():
     for split_name in SPLITS:
         print(f"  {split_name}/")
         for cls in CLASSES:
-            split_dir = BASE_DIR / split_name / cls
-            n_train = len(list((split_dir / "train").iterdir()))
-            n_test  = len(list((split_dir / "test").iterdir()))
+            train_dir = BASE_DIR / split_name / "train" / cls
+            test_dir  = BASE_DIR / split_name / "test"  / cls
+            n_train = len(list(train_dir.iterdir()))
+            n_test  = len(list(test_dir.iterdir()))
             print(f"    {cls:<25}  train: {n_train}   test: {n_test}")
 
 
