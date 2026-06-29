@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TomaLeaf AI — Scan Tomato Leaf</title>
+
+  <link rel="icon" href="../images/logo.png" type="image/png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playwrite+US+Trad:wght@100..400&family=Poppins:wght@300;400;500;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="../css/scan.css" />
+</head>
+<body>
+  <!-- Repeating leaf pattern background -->
+  <div class="leaf-pattern" aria-hidden="true"></div>
+
+  <header class="navbar">
+    <a class="brand" href="home.html">
+      <img src="../images/logo.png" alt="TomaLeaf AI logo" class="brand__logo" />
+      <span class="brand__name">TomaLeaf</span>
+    </a>
+
+    <nav class="nav" aria-label="Primary">
+      <ul class="nav__list">
+        <li><a class="nav__link" href="home.html">HOME</a></li>
+        <li><a class="nav__link" href="about.html">ABOUT</a></li>
+        <li><a class="nav__link" href="teams.html">TEAMS</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="scan">
+    <h1 class="scan__title">Tomato Leaf Disease Classification</h1>
+
+    <section class="upload-card">
+      <h2 class="upload-card__heading">Scan Tomato Leaf</h2>
+
+      <div class="upload-card__preview" id="leaf-preview-wrap">
+        <img
+          id="leaf-preview"
+          class="upload-card__image"
+          src="../images/leaf.png"
+          alt="Tomato leaf preview"
+        />
+      </div>
+
+      <input
+        type="file"
+        id="leaf-input"
+        class="upload-card__input"
+        accept="image/*"
+        hidden
+      />
+      <div class="upload-card__filename" id="file-name-box" hidden>
+        <span id="file-name-text"></span>
+      </div>
+      <div class="upload-card__actions" id="upload-actions">
+        <button type="button" class="upload-card__btn" id="upload-btn">
+          Upload
+        </button>
+        <button
+          type="button"
+          class="upload-card__btn upload-card__btn--ghost"
+          id="reupload-btn"
+          hidden
+        >
+          Re-upload
+        </button>
+        <button
+          type="button"
+          class="upload-card__btn upload-card__btn--scan"
+          id="scan-btn"
+          hidden
+        >
+          Scan
+        </button>
+      </div>
+      <p class="upload-card__note" id="format-note">
+        Supported formats: JPG, JPEG, PNG
+      </p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p class="footer__text">&copy; 2026 TomaLeaf AI. All rights reserved.</p>
+  </footer>
+
+  <script src="../js/scan.js"></script>
+</body>
+</html>
