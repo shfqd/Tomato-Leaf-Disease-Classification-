@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TomaLeaf AI — Results</title>
+
+  <link rel="icon" href="../images/logo.png" type="image/png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playwrite+US+Trad:wght@100..400&family=Poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="../css/results.css" />
+</head>
+<body>
+  <!-- Decorative background leaves -->
+  <div class="leaves" aria-hidden="true">
+    <img src="../images/leaf.png" alt="" class="leaf leaf--tl" />
+    <img src="../images/leaf.png" alt="" class="leaf leaf--tr" />
+    <img src="../images/leaf.png" alt="" class="leaf leaf--bl" />
+    <img src="../images/leaf.png" alt="" class="leaf leaf--br" />
+  </div>
+
+  <header class="navbar">
+    <a class="brand" href="home.html">
+      <img src="../images/logo.png" alt="TomaLeaf AI logo" class="brand__logo" />
+      <span class="brand__name">TomaLeaf</span>
+    </a>
+
+    <nav class="nav" aria-label="Primary">
+      <ul class="nav__list">
+        <li><a class="nav__link" href="home.html">HOME</a></li>
+        <li><a class="nav__link" href="about.html">ABOUT</a></li>
+        <li><a class="nav__link is-active" href="results.html">RESULTS</a></li>
+        <li><a class="nav__link" href="teams.html">TEAMS</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="results">
+    <h1 class="results__title">Model Results</h1>
+    <p class="results__lead">
+      Training and evaluation graphs across all three dataset splits.
+      Filter by split or click any graph to enlarge it.
+    </p>
+
+    <!-- Split filter -->
+    <div class="filter" role="tablist" aria-label="Filter by dataset split">
+      <button class="filter__btn is-active" data-filter="all">All Splits</button>
+      <button class="filter__btn" data-filter="70_30">70 / 30</button>
+      <button class="filter__btn" data-filter="80_20">80 / 20</button>
+      <button class="filter__btn" data-filter="90_10">90 / 10</button>
+    </div>
+
+    <!-- Accuracy & Loss -->
+    <section class="results__section">
+      <h2 class="results__heading">Accuracy &amp; Loss</h2>
+      <div class="graph-grid">
+        <figure class="graph" data-split="70_30">
+          <img class="graph__img" src="../../acccuracy/accuracy_loss_70_30_ep10.png" alt="Accuracy and loss, 70/30 split, 10 epochs" loading="lazy" />
+          <figcaption class="graph__cap">70 / 30 · 10 epochs</figcaption>
+        </figure>
+        <figure class="graph" data-split="70_30">
+          <img class="graph__img" src="../../acccuracy/accuracy_loss_70_30_ep50.png" alt="Accuracy and loss, 70/30 split, 50 epochs" loading="lazy" />
+          <figcaption class="graph__cap">70 / 30 · 50 epochs</figcaption>
+        </figure>
+        <figure class="graph" data-split="70_30">
+          <img class="graph__img" src="../../acccuracy/accuracy_loss_70_30_ep100.png" alt="Accuracy and loss, 70/30 split, 100 epochs" loading="lazy" />
+          <figcaption class="graph__cap">70 / 30 · 100 epochs</figcaption>
+        </figure>
+        <figure class="graph" data-split="80_20">
+          <img class="graph__img" src="../../acccuracy/accuracy_loss_80_20_ep10.png" alt="Accuracy and loss, 80/20 split, 10 epochs" loading="lazy" />
+          <figcaption class="graph__cap">80 / 20 · 10 epochs</figcaption>
+        </figure>
+        <figure class="graph" data-split="80_20">
+          <img class="graph__img" src="../../acccuracy/accuracy_loss_80_20_ep50.png" alt="Accuracy and loss, 80/20 split, 50 epochs" loading="lazy" />
+          <figcaption class="graph__cap">80 / 20 · 50 epochs</figcaption>
+        </figure>
+        <figure class="graph" data-split="80_20">
+          <img class="graph__img" src="../../acccuracy/accuracy_loss_80_20_ep100.png" alt="Accuracy and loss, 80/20 split, 100 epochs" loading="lazy" />
+          <figcaption class="graph__cap">80 / 20 · 100 epochs</figcaption>
+        </figure>
+        <figure class="graph" data-split="90_10">
+          <img class="graph__img" src="../../acccuracy/accuracy_loss_90_10_ep10.png" alt="Accuracy and loss, 90/10 split, 10 epochs" loading="lazy" />
+          <figcaption class="graph__cap">90 / 10 · 10 epochs</figcaption>
+        </figure>
+        <figure class="graph" data-split="90_10">
+          <img class="graph__img" src="../../acccuracy/accuracy_loss_90_10_ep50.png" alt="Accuracy and loss, 90/10 split, 50 epochs" loading="lazy" />
+          <figcaption class="graph__cap">90 / 10 · 50 epochs</figcaption>
+        </figure>
+        <figure class="graph" data-split="90_10">
+          <img class="graph__img" src="../../acccuracy/accuracy_loss_90_10_ep100.png" alt="Accuracy and loss, 90/10 split, 100 epochs" loading="lazy" />
+          <figcaption class="graph__cap">90 / 10 · 100 epochs</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- Precision -->
+    <section class="results__section">
+      <h2 class="results__heading">Precision</h2>
+      <div class="graph-grid">
+        <figure class="graph" data-split="70_30">
+          <img class="graph__img" src="../../precision/precision_70_30.png" alt="Precision, 70/30 split" loading="lazy" />
+          <figcaption class="graph__cap">70 / 30 split</figcaption>
+        </figure>
+        <figure class="graph" data-split="80_20">
+          <img class="graph__img" src="../../precision/precision_80_20.png" alt="Precision, 80/20 split" loading="lazy" />
+          <figcaption class="graph__cap">80 / 20 split</figcaption>
+        </figure>
+        <figure class="graph" data-split="90_10">
+          <img class="graph__img" src="../../precision/precision_90_10.png" alt="Precision, 90/10 split" loading="lazy" />
+          <figcaption class="graph__cap">90 / 10 split</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- Recall -->
+    <section class="results__section">
+      <h2 class="results__heading">Recall</h2>
+      <div class="graph-grid">
+        <figure class="graph" data-split="70_30">
+          <img class="graph__img" src="../../recall/recall_70_30.png" alt="Recall, 70/30 split" loading="lazy" />
+          <figcaption class="graph__cap">70 / 30 split</figcaption>
+        </figure>
+        <figure class="graph" data-split="80_20">
+          <img class="graph__img" src="../../recall/recall_80_20.png" alt="Recall, 80/20 split" loading="lazy" />
+          <figcaption class="graph__cap">80 / 20 split</figcaption>
+        </figure>
+        <figure class="graph" data-split="90_10">
+          <img class="graph__img" src="../../recall/recall_90_10.png" alt="Recall, 90/10 split" loading="lazy" />
+          <figcaption class="graph__cap">90 / 10 split</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- Hyperparameter tuning -->
+    <section class="results__section">
+      <h2 class="results__heading">Hyperparameter Tuning</h2>
+      <div class="graph-grid">
+        <figure class="graph" data-split="70_30">
+          <img class="graph__img" src="../../hyperparam/hyperparam_70_30.png" alt="Hyperparameter tuning, 70/30 split" loading="lazy" />
+          <figcaption class="graph__cap">70 / 30 split</figcaption>
+        </figure>
+        <figure class="graph" data-split="80_20">
+          <img class="graph__img" src="../../hyperparam/hyperparam_80_20.png" alt="Hyperparameter tuning, 80/20 split" loading="lazy" />
+          <figcaption class="graph__cap">80 / 20 split</figcaption>
+        </figure>
+        <figure class="graph" data-split="90_10">
+          <img class="graph__img" src="../../hyperparam/hyperparam_90_10.png" alt="Hyperparameter tuning, 90/10 split" loading="lazy" />
+          <figcaption class="graph__cap">90 / 10 split</figcaption>
+        </figure>
+        <figure class="graph" data-split="all">
+          <img class="graph__img" src="../../hyperparam/hyperparam_comparison.png" alt="Hyperparameter comparison across splits" loading="lazy" />
+          <figcaption class="graph__cap">Comparison · all splits</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- t-SNE features -->
+    <section class="results__section">
+      <h2 class="results__heading">Feature Space (t-SNE)</h2>
+      <div class="graph-grid">
+        <figure class="graph" data-split="70_30">
+          <img class="graph__img" src="../../feature_extraction_visual/tsne_features_70_30.png" alt="t-SNE features, 70/30 split" loading="lazy" />
+          <figcaption class="graph__cap">70 / 30 split</figcaption>
+        </figure>
+        <figure class="graph" data-split="80_20">
+          <img class="graph__img" src="../../feature_extraction_visual/tsne_features_80_20.png" alt="t-SNE features, 80/20 split" loading="lazy" />
+          <figcaption class="graph__cap">80 / 20 split</figcaption>
+        </figure>
+        <figure class="graph" data-split="90_10">
+          <img class="graph__img" src="../../feature_extraction_visual/tsne_features_90_10.png" alt="t-SNE features, 90/10 split" loading="lazy" />
+          <figcaption class="graph__cap">90 / 10 split</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <p class="results__empty" id="results-empty" hidden>
+      No graphs for this split.
+    </p>
+  </main>
+
+  <footer class="footer">
+    <p class="footer__text">&copy; 2026 TomaLeaf AI. All rights reserved.</p>
+  </footer>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox" hidden>
+    <button class="lightbox__close" id="lightbox-close" aria-label="Close">&times;</button>
+    <img class="lightbox__img" id="lightbox-img" src="" alt="" />
+    <p class="lightbox__cap" id="lightbox-cap"></p>
+  </div>
+
+  <script src="../js/results.js"></script>
+</body>
+</html>
