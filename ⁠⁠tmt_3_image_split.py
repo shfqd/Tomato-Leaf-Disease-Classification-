@@ -1,18 +1,28 @@
+
 import random
 import shutil
+import sys
 from pathlib import Path
 
 # ─── Configuration ─────────────────────────────────────────────────────────────
-BASE_DIR  = Path(__file__).resolve().parent.parent
-INPUT_DIR = BASE_DIR / "dataset" / "Original Dataset"
-CLASSES   = ["healthy", "Bacterial_spot", "Leaf_Mold", "Tomato_mosaic_virus"]
-IMG_EXTS  = {".jpg", ".jpeg", ".png"}
-SEED      = 42
+BASE_DIR   = Path(__file__).resolve().parent
+INPUT_DIR  = BASE_DIR / "dataset_preprocessed"   # all splits share the same images
+OUTPUT_DIR = BASE_DIR / "dataset"
+CLASSES    = ["healthy", "Bacterial_spot", "Leaf_Mold", "Tomato_mosaic_virus"]
+IMG_EXTS   = {".jpg", ".jpeg", ".png"}
+SEED       = 42
+
+
+def lp(p: Path) -> str:
+    """Extended-length path to bypass Windows 260-char limit."""
+    if sys.platform == "win32":
+        return "\\\\?\\" + str(p.resolve())
+    return str(p)
 
 SPLITS = {
-    "dataset/dataset_split_70_30": 0.70,
-    "dataset/dataset_split_80_20": 0.80,
-    "dataset/dataset_split_90_10": 0.90,
+    "dataset_split_70_30": 0.70,
+    "dataset_split_80_20": 0.80,
+    "dataset_split_90_10": 0.90,
 }
 # ───────────────────────────────────────────────────────────────────────────────
 
@@ -36,15 +46,15 @@ def split_class(cls, output_dir, train_ratio):
     test_imgs   = images[split_idx:]
 
     for p in train_imgs:
-        shutil.copy(p, train_dir / p.name)
+        shutil.copy(lp(p), lp(train_dir / p.name))
     for p in test_imgs:
-        shutil.copy(p, test_dir / p.name)
+        shutil.copy(lp(p), lp(test_dir  / p.name))
 
     return len(train_imgs), len(test_imgs)
 
 
 def run_split(split_name, train_ratio):
-    output_dir = BASE_DIR / split_name
+    output_dir = OUTPUT_DIR / split_name
     test_ratio = round(1.0 - train_ratio, 2)
     pct_train  = int(train_ratio * 100)
     pct_test   = int(test_ratio  * 100)
@@ -69,7 +79,7 @@ def main():
 
     print("=" * 60)
     print("Dataset Splitting")
-    print(f"  Input  : {INPUT_DIR.relative_to(BASE_DIR.parent)}")
+    print(f"  Input  : {INPUT_DIR}")
     print(f"  Classes: {', '.join(CLASSES)}")
     print(f"  Ratios : 70:30 / 80:20 / 90:10  (train:test)")
     print("=" * 60)
@@ -83,10 +93,8 @@ def main():
     for split_name in SPLITS:
         print(f"  {split_name}/")
         for cls in CLASSES:
-            train_dir = BASE_DIR / split_name / "train" / cls
-            test_dir  = BASE_DIR / split_name / "test"  / cls
-            n_train = len(list(train_dir.iterdir()))
-            n_test  = len(list(test_dir.iterdir()))
+            n_train = len(list((OUTPUT_DIR / split_name / "train" / cls).iterdir()))
+            n_test  = len(list((OUTPUT_DIR / split_name / "test"  / cls).iterdir()))
             print(f"    {cls:<25}  train: {n_train}   test: {n_test}")
 
 
