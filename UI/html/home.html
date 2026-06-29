@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TomaLeaf — Tomato Leaf Disease Classification</title>
+
+  <link rel="icon" href="../images/logo.png" type="image/png" />
+
+  <!-- Google Fonts: Playwrite US Trad (headings) + Poppins (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playwrite+US+Trad:wght@100..400&family=Poppins:wght@300;400;500;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="../css/home.css" />
+</head>
+<body>
+  <!-- Decorative background leaves -->
+  <div class="leaves" aria-hidden="true">
+    <img src="../images/leaf.png" alt="" class="leaf leaf--tl" />
+    <img src="../images/leaf.png" alt="" class="leaf leaf--tr" />
+    <img src="../images/leaf.png" alt="" class="leaf leaf--bl" />
+    <img src="../images/leaf.png" alt="" class="leaf leaf--br" />
+  </div>
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <a class="brand" href="home.html">
+      <img src="../images/logo.png" alt="TomaLeaf AI logo" class="brand__logo" />
+      <span class="brand__name">TomaLeaf</span>
+    </a>
+
+    <nav class="nav" aria-label="Primary">
+      <ul class="nav__list">
+        <li><a class="nav__link is-active" href="home.html">HOME</a></li>
+        <li><a class="nav__link" href="about.html">ABOUT</a></li>
+        <li><a class="nav__link" href="teams.html">TEAMS</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <main class="hero">
+    <div class="hero__inner">
+      <!-- Left column -->
+      <section class="hero__content">
+        <h1 class="hero__title">
+          Tomato Leaf
+          <span>Disease Classification</span>
+        </h1>
+
+        <div class="hero__cta-row">
+          <p class="hero__subtitle">
+            Scan Tomato Leaf
+          </p>
+          <a href="scan.html" class="btn btn--primary">Get Started</a>
+        </div>
+      </section>
+
+      <!-- Right column: tomato image -->
+      <section class="hero__visual">
+        <div class="tomato-stage">
+          <img
+            src="../images/tomato.png"
+            alt="Fresh red tomato"
+            class="tomato-img"
+          />
+        </div>
+      </section>
+    </div>
+
+    <!-- Scroll cue -->
+    <div class="scroll-cue" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p class="footer__text">&copy; 2026 TomaLeaf AI. All rights reserved.</p>
+  </footer>
+</body>
+</html>

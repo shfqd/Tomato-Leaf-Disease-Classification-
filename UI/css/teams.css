@@ -1,0 +1,496 @@
+/* =========================================================
+   TomaLeaf AI — Team Members Page
+   ========================================================= */
+
+:root {
+  --bg: #1d824e;
+  --bg-light: #2fa864;
+  --bg-stripe: #176540;
+  --text: #ebedd0;
+  --maxw: 1240px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --text-shadow: 2px 3px 6px rgba(0, 0, 0, 0.45);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: "Poppins", system-ui, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+ul {
+  list-style: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+/* ----------------------- Background leaves ----------------------- */
+.leaves {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.leaf {
+  position: absolute;
+  opacity: 0.35;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.25));
+  will-change: transform;
+}
+
+.leaf--tl {
+  top: -40px;
+  left: -60px;
+  width: clamp(180px, 24vw, 330px);
+  transform: rotate(-32deg);
+  animation: wiggleTL 8s ease-in-out infinite;
+}
+
+.leaf--tr {
+  top: -40px;
+  right: -60px;
+  width: clamp(180px, 24vw, 330px);
+  animation: wiggleTR 8s ease-in-out infinite;
+}
+
+.leaf--bl {
+  bottom: -65px;
+  left: -55px;
+  width: clamp(175px, 23vw, 320px);
+  transform: rotate(148deg) scaleY(-1);
+  animation: wiggleBL 10s ease-in-out infinite;
+}
+
+.leaf--br {
+  bottom: -45px;
+  right: -50px;
+  width: clamp(190px, 25vw, 340px);
+  transform: scaleX(-1) rotate(-168deg);
+  animation: wiggleBR 11s ease-in-out infinite;
+}
+
+@keyframes wiggleTL {
+  0%,
+  100% {
+    transform: rotate(-32deg) translate(0, 0);
+  }
+  33% {
+    transform: rotate(-30deg) translate(6px, -8px);
+  }
+  66% {
+    transform: rotate(-34deg) translate(-5px, 6px);
+  }
+}
+
+@keyframes wiggleTR {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  33% {
+    transform: translate(-6px, -8px);
+  }
+  66% {
+    transform: translate(5px, 6px);
+  }
+}
+
+@keyframes wiggleBL {
+  0%,
+  100% {
+    transform: rotate(148deg) scaleY(-1) translate(0, 0);
+  }
+  33% {
+    transform: rotate(146deg) scaleY(-1) translate(8px, 4px);
+  }
+  66% {
+    transform: rotate(150deg) scaleY(-1) translate(-6px, -5px);
+  }
+}
+
+@keyframes wiggleBR {
+  0%,
+  100% {
+    transform: scaleX(-1) rotate(-168deg) translate(0, 0);
+  }
+  33% {
+    transform: scaleX(-1) rotate(-166deg) translate(-4px, 7px);
+  }
+  66% {
+    transform: scaleX(-1) rotate(-170deg) translate(7px, -4px);
+  }
+}
+
+/* ------------------------------ Navbar --------------------------- */
+.navbar {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 26px clamp(20px, 5vw, 56px) 20px;
+  background: transparent;
+  border-bottom: 2px solid rgba(235, 237, 208, 0.35);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand__logo {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+.brand__name {
+  font-weight: 600;
+  font-size: 1.35rem;
+  color: #ebedd0;
+}
+
+.nav__list {
+  display: flex;
+  align-items: center;
+  gap: clamp(20px, 4vw, 46px);
+}
+
+.nav__link {
+  position: relative;
+  font-weight: 500;
+  font-size: 0.95rem;
+  letter-spacing: 1.5px;
+  color: #ebedd0;
+  padding: 6px 2px;
+  transition: filter 0.25s var(--ease);
+}
+
+.nav__link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 2px;
+  background: #ebedd0;
+  border-radius: 2px;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.32s var(--ease);
+}
+
+.nav__link:hover,
+.nav__link:focus-visible {
+  filter: brightness(1.15);
+}
+
+.nav__link:hover::after,
+.nav__link:focus-visible::after,
+.nav__link.is-active::after {
+  transform: scaleX(1);
+}
+
+/* ------------------------------ Teams ----------------------------- */
+.teams {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: calc(100vh - 90px);
+}
+
+.teams__title {
+  flex-shrink: 0;
+  width: 100%;
+  text-align: center;
+  padding: clamp(28px, 4vh, 44px) 16px clamp(24px, 3vh, 36px);
+  font-family: "Playwrite US Trad", cursive;
+  font-weight: 400;
+  font-size: clamp(2.2rem, 5vw, 3.8rem);
+  line-height: 1.1;
+  color: #ebedd0;
+  text-shadow: var(--text-shadow);
+}
+
+.teams__grid {
+  display: flex;
+  flex: 1;
+  width: 100%;
+  max-width: min(1100px, 94vw);
+  height: clamp(340px, calc(100vh - 240px), 520px);
+  margin: 0 auto clamp(36px, 6vh, 64px);
+  align-self: center;
+}
+
+.team-card {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+  cursor: pointer;
+  transition: flex 0.55s var(--ease), opacity 0.4s var(--ease), max-width 0.55s var(--ease);
+}
+
+.team-card:nth-child(odd) {
+  background-color: var(--bg-light);
+}
+
+.team-card:nth-child(even) {
+  background-color: var(--bg-stripe);
+}
+
+.teams__grid:hover .team-card:not(:hover) {
+  flex: 0 0 0;
+  max-width: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.teams__grid .team-card:hover {
+  flex: 1 1 100%;
+  max-width: 100%;
+  opacity: 1;
+}
+
+/* Default view */
+.team-card__default {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  padding: clamp(10px, 1.5vh, 18px) clamp(6px, 1vw, 10px)
+    clamp(14px, 2.5vh, 24px);
+  transition: opacity 0.4s var(--ease);
+}
+
+.team-card:hover .team-card__default {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.team-card__photo {
+  flex: 1 1 auto;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: calc(100% - 2.8rem);
+  min-height: 0;
+  object-fit: contain;
+  object-position: bottom center;
+}
+
+.team-card__nick {
+  flex-shrink: 0;
+  margin-top: 6px;
+  font-family: "Playwrite US Trad", cursive;
+  font-size: clamp(1.2rem, 2vw, 2rem);
+  color: #ebedd0;
+  text-shadow: var(--text-shadow);
+  white-space: nowrap;
+}
+
+/* Hover detail view */
+.team-card__detail {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: clamp(24px, 4vh, 40px) clamp(18px, 3vw, 38px) 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.45s var(--ease);
+}
+
+.team-card:hover .team-card__detail {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.team-card__photo--detail {
+  flex-shrink: 0;
+  width: auto;
+  height: auto;
+  max-height: calc(100% - 2rem);
+  max-width: 40%;
+  object-fit: contain;
+  object-position: bottom left;
+}
+
+.team-card__info {
+  align-self: center;
+  margin-left: 16px;
+  padding-bottom: clamp(24px, 5vh, 60px);
+  max-width: 520px;
+}
+
+.team-card__name {
+  font-family: "Playwrite US Trad", cursive;
+  font-weight: 400;
+  font-size: clamp(1.4rem, 2.8vw, 2.8rem);
+  line-height: 1.25;
+  text-transform: uppercase;
+  color: #ebedd0;
+  text-shadow: var(--text-shadow);
+}
+
+.team-card__id {
+  margin-top: clamp(12px, 2vh, 24px);
+  font-size: clamp(1.1rem, 2vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #ebedd0;
+  text-shadow: var(--text-shadow);
+}
+
+.team-card__role {
+  margin-top: 6px;
+  font-size: clamp(1rem, 1.8vw, 1.6rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #ebedd0;
+  text-shadow: var(--text-shadow);
+}
+
+/* ------------------------------ Footer ----------------------------- */
+.footer {
+  position: relative;
+  z-index: 10;
+  flex-shrink: 0;
+  width: 100%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  text-align: center;
+  padding: 20px clamp(20px, 5vw, 56px);
+  border-top: 2px solid rgba(235, 237, 208, 0.35);
+}
+
+.footer__text {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: #ebedd0;
+}
+
+/* --------------------------- Responsive -------------------------- */
+@media (max-width: 900px) {
+  .teams__grid {
+    flex-direction: column;
+    width: min(480px, 92vw);
+    height: auto;
+    max-width: none;
+  }
+
+  .teams__grid:hover .team-card:not(:hover) {
+    flex: 0 0 0;
+    max-width: none;
+    max-height: 0;
+    min-height: 0;
+    opacity: 0;
+  }
+
+  .teams__grid .team-card:hover {
+    flex: 1 1 auto;
+    max-width: none;
+    max-height: 600px;
+    min-height: 360px;
+  }
+
+  .team-card {
+    min-height: 320px;
+    height: auto;
+    transition: flex 0.55s var(--ease), opacity 0.4s var(--ease), max-height 0.55s var(--ease);
+  }
+
+  .team-card__photo {
+    max-height: 280px;
+  }
+
+  .team-card__detail {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px 24px;
+  }
+
+  .team-card__photo--detail {
+    height: 50%;
+    max-width: 70%;
+    object-position: bottom center;
+  }
+
+  .team-card__info {
+    align-self: auto;
+    text-align: center;
+    padding-bottom: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .team-card__default {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  .team-card__detail {
+    display: none;
+  }
+
+  .team-card:focus-within .team-card__default {
+    opacity: 0;
+  }
+
+  .team-card:focus-within .team-card__detail {
+    display: flex;
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
