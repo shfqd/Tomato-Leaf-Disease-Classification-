@@ -2,11 +2,10 @@
 
 **CSC566 Group Project** — Deep learning pipeline to classify tomato leaf diseases from images using Transfer Learning (MobileNetV2).
 
-| | |
-|---|---|
-| **Backbone** | MobileNetV2 (pretrained on ImageNet, frozen) |
-| **Classes** | `healthy` · `Bacterial_spot` · `Leaf_Mold` · `Tomato_mosaic_virus` |
-| **Best Accuracy** | 99.63% (90:10 split) |
+|-------------------|--------------------------------------------------------------------|
+|    **Backbone**   | MobileNetV2 (pretrained on ImageNet, frozen)                       |
+|    **Classes**    | `healthy` · `Bacterial_spot` · `Leaf_Mold` · `Tomato_mosaic_virus` |
+| **Best Accuracy** | 99.63% (90:10 split)                                               |
 
 > **Note:** Image Augmentation (`tmt_1`) and Preprocessing (`tmt_2`) are skipped. The dataset is used as-is starting from the splitting stage.
 
@@ -29,18 +28,17 @@ tmt_main.py   ← inference server (run after training)
 
 **Script:** `tmt_3_image_split.py`
 
-| | |
-|---|---|
-| **Input** | `dataset/` (raw tomato leaf images, per-class folders) |
+|------------|--------------------------------------------------------------------------------|
+| **Input**  | `dataset/` (raw tomato leaf images, per-class folders)                         |
 | **Output** | `dataset/dataset_split_70_30/`, `dataset_split_80_20/`, `dataset_split_90_10/` |
 
 The dataset is split three times at different ratios so that Stage 3 and 4 can compare how training data volume affects final model accuracy.
 
-| Split | Train | Test | Output Folder |
-|---|---|---|---|
-| A | 70% | 30% | `dataset_split_70_30/` |
-| B | 80% | 20% | `dataset_split_80_20/` |
-| C | 90% | 10% | `dataset_split_90_10/` |
+| Split | Train | Test |     Output Folder      |
+|-------|-------|------|------------------------|
+|   A   |  70%  |  30% | `dataset_split_70_30/` |
+|   B   |  80%  |  20% | `dataset_split_80_20/` |
+|   C   |  90%  |  10% | `dataset_split_90_10/` |
 
 Each split produces a `train/` and `test/` subdirectory per class. All splits use `random_state=42` for reproducibility.
 
@@ -50,9 +48,8 @@ Each split produces a `train/` and `test/` subdirectory per class. All splits us
 
 **Script:** `tmt_4_feature_extraction.py`
 
-| | |
-|---|---|
-| **Input** | `dataset/dataset_split_*/` (3 splits from Stage 1) |
+|------------|---------------------------------------------------------|
+| **Input**  | `dataset/dataset_split_*/` (3 splits from Stage 1)      |
 | **Output** | `features_70_30/`, `features_80_20/`, `features_90_10/` |
 
 Each output folder contains:
@@ -80,9 +77,8 @@ Instead of training a CNN from scratch, we reuse MobileNetV2 (ImageNet weights) 
 
 **Script:** `tmt_5_model.py`
 
-| | |
-|---|---|
-| **Input** | `features_{split}/` (`.npy` arrays from Stage 2) |
+|------------|-------------------------------------------------------------------------------------------------|
+| **Input**  | `features_{split}/` (`.npy` arrays from Stage 2)                                                |
 | **Output** | `tomato_disease_{split}.h5`, `training_history_{split}.json`, `hyperparam_results_{split}.json` |
 
 ### Classifier Architecture
@@ -94,11 +90,11 @@ Input (1280-dim feature vector)
     → Dense(4, softmax)
 ```
 
-| Setting | Value |
-|---|---|
-| Loss | Categorical cross-entropy |
-| Metrics | Accuracy, Precision, Recall |
-| Optimizer | Adam |
+|  Setting  |           Value             |
+|-----------|-----------------------------|
+|   Loss    |  Categorical cross-entropy  |
+|  Metrics  | Accuracy, Precision, Recall |
+| Optimizer |           Adam              |
 
 ### Training
 
@@ -120,10 +116,9 @@ This entire process is repeated for all three splits (70_30, 80_20, 90_10).
 
 **Script:** `tmt_6_evaluation_visual.py`
 
-| | |
-|---|---|
-| **Input** | `training_history_{split}.json`, `hyperparam_results_{split}.json` |
-| **Output** | 12 PNG graphs (4 per split × 3 splits) + 1 cross-split comparison |
+|------------|--------------------------------------------------------------------|
+| **Input**  | `training_history_{split}.json`, `hyperparam_results_{split}.json` |
+| **Output** | 12 PNG graphs (4 per split × 3 splits) + 1 cross-split comparison  |
 
 ### Graphs Generated
 
@@ -131,19 +126,19 @@ This entire process is repeated for all three splits (70_30, 80_20, 90_10).
 
 Each split produces 3 accuracy/loss graph pairs, 1 precision graph, 1 recall graph, and 1 hyperparameter bar chart.
 
-| Graph | Epoch Checkpoint | Content |
-|---|---|---|
-| Accuracy/Loss graph 1 | Epoch 10 | Train Accuracy & Loss vs Validation Accuracy & Loss up to epoch 10 |
-| Accuracy/Loss graph 2 | Epoch 50 | Train Accuracy & Loss vs Validation Accuracy & Loss up to epoch 50 |
-| Accuracy/Loss graph 3 | Epoch 100 | Train Accuracy & Loss vs Validation Accuracy & Loss up to epoch 100 |
-| `precision_{split}.png` | — | Train Precision vs Validation Precision over full 100 epochs |
-| `recall_{split}.png` | — | Train Recall vs Validation Recall over full 100 epochs |
-| `hyperparam_{split}.png` | — | Bar chart with 3 bars showing val_accuracy at epoch 10, 50, and 100 |
+|           Graph          | Epoch Checkpoint |                             Content                                 |
+|--------------------------|------------------|---------------------------------------------------------------------|
+| Accuracy/Loss graph 1    |     Epoch 10     | Train Accuracy & Loss vs Validation Accuracy & Loss up to epoch 10  |
+| Accuracy/Loss graph 2    |     Epoch 50     | Train Accuracy & Loss vs Validation Accuracy & Loss up to epoch 50  |
+| Accuracy/Loss graph 3    |     Epoch 100    | Train Accuracy & Loss vs Validation Accuracy & Loss up to epoch 100 |
+| `precision_{split}.png`  |         —        | Train Precision vs Validation Precision over full 100 epochs        |
+| `recall_{split}.png`     |         —        | Train Recall vs Validation Recall over full 100 epochs              |
+| `hyperparam_{split}.png` |         —        | Bar chart with 3 bars showing val_accuracy at epoch 10, 50, and 100 |
 
 **Cross-split (1 graph):**
 
-| File | Content |
-|---|---|
+| File                        |                                                 Content                                                  |
+|-----------------------------|----------------------------------------------------------------------------------------------------------|
 | `hyperparam_comparison.png` | Compares the best epoch checkpoint val_accuracy across all 3 splits — overall winner immediately visible |
 
 **Total: 19 graphs (18 per-split + 1 cross-split)**
@@ -154,13 +149,11 @@ Each split produces 3 accuracy/loss graph pairs, 1 precision graph, 1 recall gra
 
 ## Hyperparameter Results (Val Accuracy at Each Epoch Checkpoint)
 
-| Split | Epoch 10 | Epoch 50 | Epoch 100 | Best |
-|---|---|---|---|---|
-| 70:30 | — | — | — | Epoch 100 |
-| 80:20 | — | — | — | Epoch 100 |
-| **90:10** | — | — | **99.63%** | **Epoch 100 ← Winner** |
-
-> The exact val_accuracy values at epoch 10 and 50 are recorded from the training history by `LearningRateLogger` — the learning rate at each checkpoint is observed, not predefined.
+|   Split   | Epoch 10 |  Epoch 50  | Epoch 100  |          Best         |
+|-----------|----------|------------|------------|-----------------------|
+|   70:30   |  98.05%  | **98.71%** |   98.66%   |     **Epoch 50**      |
+|   80:20   |  97.95%  |   98.46%   | **98.79%** |    **Epoch 100**      |
+| **90:10** |  98.61%  | **99.63%** |   99.49%   | **Epoch 50 ← Winner** |
 
 ---
 
@@ -168,7 +161,7 @@ Each split produces 3 accuracy/loss graph pairs, 1 precision graph, 1 recall gra
 
 1. **Train the model** — each split trains for 100 epochs; `LearningRateLogger` records the LR and all metrics at every epoch into `training_history_{split}.json`.
 2. **Extract epoch checkpoints** — val_accuracy is read from the history at epoch 10, 50, and 100. These 3 values are saved to `hyperparam_results_{split}.json`.
-3. **Per-split winner** — the epoch checkpoint with the highest val_accuracy is the best configuration for that split. Epoch 100 consistently wins as the model has had the most time to converge.
+3. **Per-split winner** — the epoch checkpoint with the highest val_accuracy is the best configuration for that split. Epoch 50 wins for the 70:30 and 90:10 splits (validation accuracy peaks before overfitting sets in); Epoch 100 wins only for the 80:20 split.
 4. **Cross-split comparison** — `hyperparam_comparison.png` plots the best checkpoint val_accuracy from all 3 splits side by side. The **90:10 split** wins with the highest accuracy — 90% training data gives the classifier more examples to learn from.
 5. **Production deployment** — `tmt_main.py` loads `tomato_disease_90_10.h5` and serves it via HTTP at `127.0.0.1:8000`.
 
@@ -176,20 +169,19 @@ Each split produces 3 accuracy/loss graph pairs, 1 precision graph, 1 recall gra
 
 ## Best Model — Final Specification
 
-| | |
-|---|---|
-| **Split** | 90:10 (90% train / 10% test) |
-| **Model file** | `tomato_disease_90_10.h5` |
-| **Backbone** | MobileNetV2 (ImageNet, frozen) → 1280-dim features |
-| **Classifier** | Dense(256) → Dropout(0.4) → Dense(128) → Dropout(0.3) → Dense(4, softmax) |
-| **LR** | Recorded by `LearningRateLogger` (not predefined) |
-| **Best epoch checkpoint** | 100 |
-| **Final training** | 100 epochs |
-| **Batch size** | 32 |
-| **Optimiser** | Adam |
-| **Loss** | Categorical cross-entropy |
-| **Val accuracy** | 99.63% |
-| **Train accuracy** | ~99.8% (epoch 100) |
+|---------------------------|---------------------------------------------------------------------------|
+| **Split**                 | 90:10 (90% train / 10% test)                                              |
+| **Model file**            | `tomato_disease_90_10.h5`                                                 |
+| **Backbone**              | MobileNetV2 (ImageNet, frozen) → 1280-dim features                        |
+| **Classifier**            | Dense(256) → Dropout(0.4) → Dense(128) → Dropout(0.3) → Dense(4, softmax) |
+| **LR**                    | Recorded by `LearningRateLogger` (not predefined)                         |
+| **Best epoch checkpoint** | 50                                                                        |
+| **Final training**        | 100 epochs                                                                |
+| **Batch size**            | 32                                                                        |
+| **Optimiser**             | Adam                                                                      |
+| **Loss**                  | Categorical cross-entropy                                                 |
+| **Val accuracy**          | 99.63%                                                                    |
+| **Train accuracy**        | ~99.8% (epoch 50)                                                         |
 
 ---
 
@@ -199,9 +191,9 @@ Each split produces 3 accuracy/loss graph pairs, 1 precision graph, 1 recall gra
 **Run:** `python tmt_main.py`  
 **URL:** `http://127.0.0.1:8000`
 
-| Route | Description |
-|---|---|
-| `GET /` | Serves `test.html` — web UI for uploading leaf images |
+|      Route      |                              Description                                 |
+|-----------------|--------------------------------------------------------------------------|
+|     `GET /`     | Serves `test.html` — web UI for uploading leaf images                    |
 | `POST /predict` | Accepts `{ "image": "<base64-encoded image>" }`, returns prediction JSON |
 
 **Response format:**
