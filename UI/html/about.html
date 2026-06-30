@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TomaLeaf AI — About</title>
+
+  <link rel="icon" href="../images/logo.png" type="image/png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playwrite+US+Trad:wght@100..400&family=Poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="../css/about.css" />
+</head>
+<body>
+  <!-- Decorative background leaves -->
+  <div class="leaves" aria-hidden="true">
+    <img src="../images/leaf.png" alt="" class="leaf leaf--tl" />
+    <img src="../images/leaf.png" alt="" class="leaf leaf--tr" />
+    <img src="../images/leaf.png" alt="" class="leaf leaf--bl" />
+    <img src="../images/leaf.png" alt="" class="leaf leaf--br" />
+  </div>
+
+  <header class="navbar">
+    <a class="brand" href="home.html">
+      <img src="../images/logo.png" alt="TomaLeaf AI logo" class="brand__logo" />
+      <span class="brand__name">TomaLeaf</span>
+    </a>
+
+    <nav class="nav" aria-label="Primary">
+      <ul class="nav__list">
+        <li><a class="nav__link" href="home.html">HOME</a></li>
+        <li><a class="nav__link is-active" href="about.html">ABOUT</a></li>
+        <li><a class="nav__link" href="results.html">RESULTS</a></li>
+        <li><a class="nav__link" href="teams.html">TEAMS</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="about">
+    <h1 class="about__title">About TomaLeaf</h1>
+
+    <!-- Intro -->
+    <section class="about__intro">
+      <p class="about__lead">
+        <strong>TomaLeaf AI</strong> is a deep-learning web application that
+        detects tomato leaf diseases from a single photo. Upload or paste an
+        image of a tomato leaf and the model returns the most likely condition
+        in seconds — helping growers spot problems early and act before they
+        spread.
+      </p>
+    </section>
+
+    <!-- How it works -->
+    <section class="about__section">
+      <h2 class="about__heading">How It Works</h2>
+      <ol class="steps">
+        <li class="step">
+          <span class="step__num">1</span>
+          <h3 class="step__title">Upload a Leaf</h3>
+          <p class="step__text">
+            Choose an image from your device or paste one from the clipboard.
+            JPG, JPEG and PNG are supported.
+          </p>
+        </li>
+        <li class="step">
+          <span class="step__num">2</span>
+          <h3 class="step__title">Feature Extraction</h3>
+          <p class="step__text">
+            A pre-trained <strong>MobileNetV2</strong> backbone converts the
+            image into a compact feature vector that captures leaf texture,
+            colour and patterns.
+          </p>
+        </li>
+        <li class="step">
+          <span class="step__num">3</span>
+          <h3 class="step__title">Classification</h3>
+          <p class="step__text">
+            A neural-network classifier reads those features and predicts the
+            disease class along with a confidence score.
+          </p>
+        </li>
+        <li class="step">
+          <span class="step__num">4</span>
+          <h3 class="step__title">Instant Result</h3>
+          <p class="step__text">
+            You get the predicted class and a breakdown of probabilities across
+            every disease the model knows.
+          </p>
+        </li>
+      </ol>
+    </section>
+
+    <!-- Diseases detected -->
+    <section class="about__section">
+      <h2 class="about__heading">Conditions We Detect</h2>
+      <div class="diseases">
+        <article class="disease">
+          <img
+            class="disease__img"
+            src="../images/bacterialLeaf.png"
+            alt="Tomato leaf with bacterial spot"
+          />
+          <h3 class="disease__name">Bacterial Spot</h3>
+          <p class="disease__text">
+            Small, dark, water-soaked spots caused by <em>Xanthomonas</em>
+            bacteria that can merge and damage leaves and fruit.
+          </p>
+        </article>
+        <article class="disease">
+          <img
+            class="disease__img"
+            src="../images/moldLeaf.png"
+            alt="Tomato leaf with leaf mold"
+          />
+          <h3 class="disease__name">Leaf Mold</h3>
+          <p class="disease__text">
+            Pale yellow patches on top of leaves with olive-green to brown mold
+            underneath, common in humid conditions.
+          </p>
+        </article>
+        <article class="disease">
+          <img
+            class="disease__img"
+            src="../images/mosaicLeaf.png"
+            alt="Tomato leaf with mosaic virus"
+          />
+          <h3 class="disease__name">Tomato Mosaic Virus</h3>
+          <p class="disease__text">
+            A viral infection causing mottled light and dark green patterns,
+            curling and stunted growth.
+          </p>
+        </article>
+        <article class="disease disease--healthy">
+          <img
+            class="disease__img"
+            src="../images/leaf.png"
+            alt="Healthy tomato leaf"
+          />
+          <h3 class="disease__name">Healthy</h3>
+          <p class="disease__text">
+            A clean, vigorous leaf with no signs of disease — exactly what every
+            tomato plant should look like.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="about__section">
+      <h2 class="about__heading">By the Numbers</h2>
+      <div class="stats">
+        <div class="stat">
+          <span class="stat__value">~99%</span>
+          <span class="stat__label">Validation Accuracy</span>
+        </div>
+        <div class="stat">
+          <span class="stat__value">4</span>
+          <span class="stat__label">Leaf Classes</span>
+        </div>
+        <div class="stat">
+          <span class="stat__value">MobileNetV2</span>
+          <span class="stat__label">Feature Extractor</span>
+        </div>
+        <div class="stat">
+          <span class="stat__value">&lt; 1s</span>
+          <span class="stat__label">Per Prediction</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="about__cta">
+      <p class="about__cta-text">Ready to check your tomato leaf?</p>
+      <a href="scan.html" class="about__btn">Scan a Leaf</a>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p class="footer__text">&copy; 2026 TomaLeaf AI. All rights reserved.</p>
+  </footer>
+</body>
+</html>

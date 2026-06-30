@@ -30,6 +30,7 @@
       <ul class="nav__list">
         <li><a class="nav__link" href="home.html">HOME</a></li>
         <li><a class="nav__link" href="about.html">ABOUT</a></li>
+        <li><a class="nav__link" href="results.html">RESULTS</a></li>
         <li><a class="nav__link" href="teams.html">TEAMS</a></li>
       </ul>
     </nav>
@@ -38,7 +39,7 @@
   <main class="scan">
     <h1 class="scan__title">Tomato Leaf Disease Classification</h1>
 
-    <section class="upload-card">
+    <section class="upload-card" id="upload-card">
       <h2 class="upload-card__heading">Scan Tomato Leaf</h2>
 
       <div class="upload-card__preview" id="leaf-preview-wrap">
@@ -82,8 +83,25 @@
         </button>
       </div>
       <p class="upload-card__note" id="format-note">
-        Supported formats: JPG, JPEG, PNG
+        Supported formats: JPG, JPEG, PNG &middot; or press Ctrl+V to paste an image
       </p>
+    </section>
+
+    <section class="result-card" id="result-card" hidden>
+      <h2 class="result-card__heading">Prediction Result</h2>
+      <div class="result-card__body" id="result-body"></div>
+      <div class="result-card__actions">
+        <button type="button" class="upload-card__btn" id="scan-again-btn">
+          Scan Another Leaf
+        </button>
+        <button
+          type="button"
+          class="upload-card__btn upload-card__btn--ghost"
+          id="export-pdf-btn"
+        >
+          Export as PDF
+        </button>
+      </div>
     </section>
   </main>
 
