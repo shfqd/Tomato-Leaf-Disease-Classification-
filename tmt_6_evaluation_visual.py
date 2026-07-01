@@ -1,10 +1,36 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# tmt_6_evaluation_visual.py — Evaluation & Visualisation
+# ──────────────────────────────────────────────────────────────────────────────
+# PURPOSE:
+#   Reads the artefacts produced by tmt_5 (training history JSON files and
+#   saved .h5 models) and generates a comprehensive set of diagnostic graphs:
+#
+#   Per split (70:30 / 80:20 / 90:10):
+#     - Accuracy + Loss curves at epoch checkpoints 10, 50, 100
+#     - Precision curve over the full 100-epoch training run
+#     - Recall curve over the full 100-epoch training run
+#     - Hyperparameter bar chart (val_accuracy at each checkpoint)
+#     - Confusion Matrix heatmap (model predictions vs true labels)
+#
+#   Cross-split:
+#     - Comparison bar chart: best checkpoint accuracy for each split
+#
+#   All graphs are saved as PNG files in the same directory as this script.
+#
+# RUN   : python tmt_6_evaluation_visual.py   (run AFTER tmt_5)
+# ══════════════════════════════════════════════════════════════════════════════
+
 import matplotlib
-matplotlib.use('Agg')
+matplotlib.use('Agg')   # non-interactive backend -- safe for scripts without a display
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import numpy as np
 import json
 from pathlib import Path
+
+# sklearn and keras are imported inside plot_confusion_matrix() to avoid
+# loading heavy dependencies when they are not needed (e.g. if models are
+# missing and the function is skipped early).
 
 # ── Configuration ──────────────────────────────────────────────────────────────
 SCRIPT_DIR  = Path(__file__).resolve().parent
@@ -24,9 +50,10 @@ DPI = 150
 
 
 def _save(fig, path: Path):
+    """Save figure to disk and close it to free memory."""
     fig.savefig(str(path), dpi=DPI, bbox_inches='tight')
     plt.close(fig)
-    print(f"  Saved → {path.name}")
+    print(f"  Saved -> {path.name}")
 
 
 def _style_ax(ax, title, ylabel, n_epochs, ylim=(0.0, 1.05)):
@@ -46,7 +73,7 @@ def _style_ax(ax, title, ylabel, n_epochs, ylim=(0.0, 1.05)):
 
 
 def _annotate_best(ax, epochs_arr, values, color=C_BEST):
-    """Draw a vertical line and label at the epoch with highest value."""
+    """Draw a vertical line and label at the epoch with the highest value."""
     best_i   = int(np.argmax(values))
     best_ep  = epochs_arr[best_i]
     best_val = values[best_i]
@@ -71,9 +98,16 @@ def _annotate_best(ax, epochs_arr, values, color=C_BEST):
 
 def plot_accuracy_loss(history, split, max_epoch):
     """
-    Generates a side-by-side figure:  Model Accuracy (left) | Model Loss (right)
-    showing training curves from epoch 1 up to max_epoch.
-    Saves as  accuracy_loss_{split}_ep{max_epoch}.png
+    Generate a side-by-side figure: Model Accuracy (left) | Model Loss (right).
+
+    Shows training curves from epoch 1 up to max_epoch so the lecturer can
+    compare how the model behaves at three different training lengths
+    (epoch 10 = early, 50 = mid, 100 = full training).
+
+    The grey shaded band between train and val curves highlights the
+    generalisation gap -- a large gap suggests overfitting.
+
+    Saves as: accuracy_loss_<split>_ep<max_epoch>.png
     """
     acc_key     = 'accuracy'
     val_acc_key = 'val_accuracy'
@@ -82,7 +116,7 @@ def plot_accuracy_loss(history, split, max_epoch):
 
     for key in (acc_key, val_acc_key, loss_key, val_loss_key):
         if key not in history:
-            print(f"  [{split}] Skipping epoch {max_epoch} graph — '{key}' not in history.")
+            print(f"  [{split}] Skipping epoch {max_epoch} graph -- '{key}' not in history.")
             return
 
     n          = min(max_epoch, len(history[acc_key]))
@@ -106,11 +140,13 @@ def plot_accuracy_loss(history, split, max_epoch):
     _style_ax(ax_acc, 'Model Accuracy', 'Accuracy', n)
 
     # ── Loss subplot ──────────────────────────────────────────────────────────
+    # Loss should decrease over time; _annotate_best uses -val_loss so the
+    # "best" point is correctly identified as the minimum (lowest) loss epoch.
     loss_max = float(np.max([train_loss, val_loss])) * 1.15
     ax_loss.plot(epochs_arr, train_loss, color=C_TRAIN, linewidth=2.0, label='Train Loss')
     ax_loss.plot(epochs_arr, val_loss,   color=C_VAL,   linewidth=2.0, label='Validation Loss')
     ax_loss.fill_between(epochs_arr, train_loss, val_loss, alpha=0.08, color='grey')
-    _annotate_best(ax_loss, epochs_arr, -val_loss)   # best = lowest loss
+    _annotate_best(ax_loss, epochs_arr, -val_loss)   # negate so argmax finds the minimum
     _style_ax(ax_loss, 'Model Loss', 'Loss', n, ylim=(0.0, loss_max))
 
     plt.tight_layout()
@@ -121,17 +157,22 @@ def plot_accuracy_loss(history, split, max_epoch):
 
 def plot_hyperparam(hp_results, split):
     """
-    Vertical bar chart with 3 bars — one per epoch checkpoint (10, 50, 100).
-    Each bar shows the val_accuracy recorded at that epoch from training history.
-    Highlights the best epoch in amber.
+    Vertical bar chart with 3 bars -- one per epoch checkpoint (10, 50, 100).
+
+    Each bar shows the val_accuracy recorded at that epoch from the training
+    history, along with the learning rate at that point.
+    The best-performing checkpoint is highlighted in amber.
+
+    This chart helps answer: "Does training longer actually help?"
+    If epoch 10 and epoch 100 have similar accuracy the model converges fast.
     """
     if not hp_results:
-        print(f"  [{split}] Skipping hyperparameter chart — no data.")
+        print(f"  [{split}] Skipping hyperparameter chart -- no data.")
         return
 
     label = LABELS[split]
 
-    # Sort by epoch number (ascending: 10, 50, 100)
+    # Sort by epoch number ascending: 10, 50, 100
     sorted_results = sorted(hp_results, key=lambda r: r['epochs'])
     bar_labels = [f"Epoch {r['epochs']}" for r in sorted_results]
     val_accs   = [r['val_accuracy'] for r in sorted_results]
@@ -144,7 +185,7 @@ def plot_hyperparam(hp_results, split):
     bars = ax.bar(range(len(bar_labels)), val_accs,
                   color=colors, alpha=0.88, edgecolor='white', linewidth=0.8, width=0.5)
 
-    # Value labels above each bar
+    # Annotate each bar with its accuracy value and the corresponding LR
     for bar, val, r in zip(bars, val_accs, sorted_results):
         lr_str = f"lr={r['learning_rate']:.2e}" if r['learning_rate'] else ''
         ax.text(bar.get_x() + bar.get_width() / 2, val + 0.002,
@@ -162,11 +203,11 @@ def plot_hyperparam(hp_results, split):
     ax.spines[['top', 'right']].set_visible(False)
     ax.tick_params(axis='both', labelsize=10)
 
-    # Best checkpoint label
+    # Annotate the overall best checkpoint in the bottom-right corner
     best = sorted_results[best_i]
     lr_str = f"{best['learning_rate']:.2e}" if best['learning_rate'] else 'N/A'
     ax.text(0.99, 0.02,
-            f"Best: Epoch {best['epochs']}  lr={lr_str}  →  acc={best['val_accuracy']:.4f}",
+            f"Best: Epoch {best['epochs']}  lr={lr_str}  ->  acc={best['val_accuracy']:.4f}",
             transform=ax.transAxes, ha='right', va='bottom',
             fontsize=9, color=C_BEST_BAR,
             bbox=dict(boxstyle='round,pad=0.4', fc='white', ec=C_BEST_BAR, alpha=0.88))
@@ -175,20 +216,106 @@ def plot_hyperparam(hp_results, split):
     _save(fig, SCRIPT_DIR / f'hyperparam_{split}.png')
 
 
+# ── Precision graph ───────────────────────────────────────────────────────────
+
+def plot_precision(history, split):
+    """
+    Plot training and validation Precision over the full 100-epoch run.
+
+    Precision = TP / (TP + FP).
+    High precision means when the model predicts a disease, it is usually
+    correct (few false positives).  A growing gap between train and val
+    precision over epochs signals overfitting.
+
+    Saves as: precision_<split>.png
+    """
+    p_key  = 'precision'
+    vp_key = 'val_precision'
+    for key in (p_key, vp_key):
+        if key not in history:
+            print(f"  [{split}] Skipping precision graph -- '{key}' not in history.")
+            return
+
+    n          = len(history[p_key])
+    epochs_arr = np.arange(1, n + 1)
+    label      = LABELS[split]
+
+    train_p = np.array(history[p_key])
+    val_p   = np.array(history[vp_key])
+
+    fig, ax = plt.subplots(figsize=(9, 5))
+    fig.suptitle(f'Model Precision  [{label} Split]', fontsize=13, fontweight='bold', y=1.01)
+
+    ax.plot(epochs_arr, train_p, color=C_TRAIN, linewidth=2.0, label='Train Precision')
+    ax.plot(epochs_arr, val_p,   color=C_VAL,   linewidth=2.0, label='Validation Precision')
+    ax.fill_between(epochs_arr, train_p, val_p, alpha=0.08, color='grey')
+    _annotate_best(ax, epochs_arr, val_p)
+    _style_ax(ax, 'Model Precision', 'Precision', n)
+
+    plt.tight_layout()
+    _save(fig, SCRIPT_DIR / f'precision_{split}.png')
+
+
+# ── Recall graph ───────────────────────────────────────────────────────────────
+
+def plot_recall(history, split):
+    """
+    Plot training and validation Recall over the full 100-epoch run.
+
+    Recall = TP / (TP + FN).
+    High recall means the model correctly identifies most disease cases
+    (few false negatives).  In a plant disease detection context, high
+    recall is critical because missing a diseased plant is costly.
+
+    Saves as: recall_<split>.png
+    """
+    r_key  = 'recall'
+    vr_key = 'val_recall'
+    for key in (r_key, vr_key):
+        if key not in history:
+            print(f"  [{split}] Skipping recall graph -- '{key}' not in history.")
+            return
+
+    n          = len(history[r_key])
+    epochs_arr = np.arange(1, n + 1)
+    label      = LABELS[split]
+
+    train_r = np.array(history[r_key])
+    val_r   = np.array(history[vr_key])
+
+    fig, ax = plt.subplots(figsize=(9, 5))
+    fig.suptitle(f'Model Recall  [{label} Split]', fontsize=13, fontweight='bold', y=1.01)
+
+    ax.plot(epochs_arr, train_r, color=C_TRAIN, linewidth=2.0, label='Train Recall')
+    ax.plot(epochs_arr, val_r,   color=C_VAL,   linewidth=2.0, label='Validation Recall')
+    ax.fill_between(epochs_arr, train_r, val_r, alpha=0.08, color='grey')
+    _annotate_best(ax, epochs_arr, val_r)
+    _style_ax(ax, 'Model Recall', 'Recall', n)
+
+    plt.tight_layout()
+    _save(fig, SCRIPT_DIR / f'recall_{split}.png')
+
+
 # ── Best-hyperparam cross-split comparison ────────────────────────────────────
 
 def plot_best_hyperparam_comparison(all_best: dict):
     """
+    Bar chart comparing the best checkpoint val_accuracy across all 3 splits.
+
     all_best = {
         '70_30': {'epochs': 100, 'learning_rate': ..., 'val_accuracy': ...},
         '80_20': {...},
         '90_10': {...},
     }
-    Generates a vertical bar chart comparing the best epoch checkpoint
-    val_accuracy across all 3 splits.
+
+    This chart directly answers: "Which train/test split ratio gives the
+    best model performance?"  A higher bar for 90:10 means more training
+    data helps, which is typical for deep learning.
+
+    Saves as: hyperparam_comparison.png
     """
     if not all_best:
-        print("\nSkipping cross-split comparison — no hyperparam data available.")
+        print("\nSkipping cross-split comparison -- no hyperparam data available.")
         return
 
     splits_present = [s for s in SPLITS if s in all_best]
@@ -208,6 +335,7 @@ def plot_best_hyperparam_comparison(all_best: dict):
                   edgecolor='white', linewidth=0.8,
                   width=0.45)
 
+    # Label each bar with its accuracy and the epoch/LR that achieved it
     for bar, val, combo in zip(bars, val_accs, combos):
         ax.text(
             bar.get_x() + bar.get_width() / 2,
@@ -225,9 +353,10 @@ def plot_best_hyperparam_comparison(all_best: dict):
             fontsize=9, color='white', fontweight='bold',
         )
 
+    # Horizontal dashed line at the highest accuracy for easy reading
     ax.axhline(y=best_acc, color=C_BEST, linestyle='--', linewidth=1.3, alpha=0.75)
 
-    ax.set_title('Best Epoch Checkpoint — Cross-Split Validation Accuracy Comparison',
+    ax.set_title('Best Epoch Checkpoint -- Cross-Split Validation Accuracy Comparison',
                  fontsize=13, fontweight='bold', pad=12)
     ax.set_xlabel('Dataset Split (Train / Test)', fontsize=11)
     ax.set_ylabel('Validation Accuracy at Best Epoch', fontsize=11)
@@ -248,6 +377,102 @@ def plot_best_hyperparam_comparison(all_best: dict):
     _save(fig, SCRIPT_DIR / 'hyperparam_comparison.png')
 
 
+# ── Confusion Matrix ──────────────────────────────────────────────────────────
+
+def plot_confusion_matrix(split):
+    """
+    Load the saved model and test features, run inference, then plot a
+    normalised confusion matrix heatmap.
+
+    A confusion matrix shows, for each true class (row), how many test
+    samples were predicted as each class (column).  The diagonal cells
+    show correct predictions; off-diagonal cells show misclassifications.
+
+    Two values are shown in every cell:
+      - Normalised fraction (0.00 -- 1.00): proportion of that true class
+        predicted as the column class (row-normalised recall perspective).
+      - Raw count in parentheses: actual number of test images.
+
+    Interpreting the matrix:
+      - A strong diagonal (values close to 1.0) means the model rarely
+        confuses one disease for another.
+      - An off-diagonal hot spot (e.g. row "Healthy", col "Bacterial_spot")
+        means the model frequently mistakes one class for another, which
+        may indicate visual similarity or insufficient training data.
+
+    Saves as: confusion_matrix_<split>.png
+    """
+    # Heavy imports kept local so missing libraries only fail here, not at startup
+    from tensorflow import keras
+    from sklearn.metrics import confusion_matrix
+
+    model_path       = SCRIPT_DIR / f'tomato_disease_{split}.h5'
+    features_dir     = SCRIPT_DIR / f'features_{split}'
+    class_names_path = features_dir / 'class_names.json'
+
+    # Guard: skip gracefully if model or feature files were not produced by tmt_5
+    if not model_path.exists():
+        print(f"  [{split}] Skipping confusion matrix -- model file not found.")
+        return
+    if not (features_dir / 'X_test.npy').exists():
+        print(f"  [{split}] Skipping confusion matrix -- test features not found.")
+        return
+
+    # Load test features and convert one-hot labels to integer class indices
+    X_test = np.load(features_dir / 'X_test.npy')
+    y_test = np.load(features_dir / 'y_test.npy')
+    y_true = np.argmax(y_test, axis=1)   # one-hot -> scalar class index
+
+    with open(class_names_path) as f:
+        class_names = json.load(f)
+
+    # Reload the trained model and predict class probabilities for each test image
+    print(f"  [{split}] Loading model for confusion matrix...")
+    model  = keras.models.load_model(str(model_path))
+    y_prob = model.predict(X_test, verbose=0)   # shape: (N, num_classes)
+    y_pred = np.argmax(y_prob, axis=1)          # pick the highest-probability class
+
+    # Compute the raw confusion matrix (rows=true, cols=predicted)
+    cm = confusion_matrix(y_true, y_pred)
+
+    # Row-normalise: divide each row by the total count of that true class.
+    # This converts raw counts to recall rates, making classes with different
+    # sample sizes comparable on the same 0-1 colour scale.
+    cm_norm = cm.astype(float) / cm.sum(axis=1, keepdims=True)
+
+    label = LABELS[split]
+    n_classes = len(class_names)
+
+    fig, ax = plt.subplots(figsize=(9, 7))
+    im = ax.imshow(cm_norm, interpolation='nearest', cmap='Blues', vmin=0, vmax=1)
+    cbar = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+    cbar.set_label('Normalised Count (Recall per Class)', fontsize=9)
+
+    # Set tick labels to class names, rotated for readability
+    tick_marks = np.arange(n_classes)
+    ax.set_xticks(tick_marks)
+    ax.set_xticklabels(class_names, rotation=35, ha='right', fontsize=9)
+    ax.set_yticks(tick_marks)
+    ax.set_yticklabels(class_names, fontsize=9)
+
+    # Annotate every cell with the normalised value and raw count
+    for i in range(n_classes):
+        for j in range(n_classes):
+            # Use white text on dark cells, black text on light cells for readability
+            text_color = 'white' if cm_norm[i, j] > 0.5 else 'black'
+            ax.text(j, i,
+                    f'{cm_norm[i, j]:.2f}\n({cm[i, j]})',
+                    ha='center', va='center',
+                    fontsize=8, color=text_color, fontweight='bold')
+
+    ax.set_title(f'Confusion Matrix  [{label} Split]',
+                 fontsize=13, fontweight='bold', pad=12)
+    ax.set_xlabel('Predicted Label', fontsize=11)
+    ax.set_ylabel('True Label', fontsize=11)
+    plt.tight_layout()
+    _save(fig, SCRIPT_DIR / f'confusion_matrix_{split}.png')
+
+
 # ── Main ───────────────────────────────────────────────────────────────────────
 
 def main():
@@ -265,20 +490,24 @@ def main():
         hyperparam_path = SCRIPT_DIR / f'hyperparam_results_{split}.json'
 
         if not history_path.exists():
-            print(f"\n[{split}] Skipping — training_history_{split}.json not found.")
+            print(f"\n[{split}] Skipping -- training_history_{split}.json not found.")
             continue
 
         found_any = True
-        print(f"\n── Split {LABELS[split]} ──────────────────────────────────")
+        print(f"\n-- Split {LABELS[split]} " + "-" * 44)
 
         with open(history_path) as f:
             history = json.load(f)
 
-        # 3 accuracy/loss graphs — one per epoch checkpoint
+        # Generate 3 accuracy/loss side-by-side graphs (one per epoch checkpoint)
         for ep in CHECKPOINTS:
             plot_accuracy_loss(history, split, ep)
 
-        # 1 hyperparameter bar chart (3 bars: epoch 10, 50, 100)
+        # Generate precision and recall line graphs for the full training run
+        plot_precision(history, split)
+        plot_recall(history, split)
+
+        # Generate 1 hyperparameter bar chart (3 bars: epoch 10, 50, 100)
         hp_results = None
         if hyperparam_path.exists():
             with open(hyperparam_path) as f:
@@ -286,26 +515,33 @@ def main():
             best = max(hp_results, key=lambda r: r['val_accuracy'])
             all_best[split] = best
         else:
-            print(f"  (hyperparam_results_{split}.json not found — skipping hyperparam chart)")
+            print(f"  (hyperparam_results_{split}.json not found -- skipping hyperparam chart)")
 
         plot_hyperparam(hp_results, split)
+
+        # Generate confusion matrix heatmap using the saved model + test features
+        plot_confusion_matrix(split)
 
     if not found_any:
         print('\nNo training history files found. Run tmt_5_model.py first.')
         return
 
     # Cross-split comparison (runs once after all splits are processed)
-    print('\n── Cross-split comparison ─────────────────────────────────')
+    print('\n-- Cross-split comparison ' + '-' * 35)
     plot_best_hyperparam_comparison(all_best)
 
     print(f'\n{"=" * 60}')
     print('All graphs generated.')
-    print(f'\nOutputs ({len(SPLITS) * (len(CHECKPOINTS) + 1) + 1} graphs total):')
+    n_per_split = len(CHECKPOINTS) + 1 + 2 + 1   # acc/loss + hyperparam + precision + recall + confusion
+    print(f'\nOutputs ({len(SPLITS) * n_per_split + 1} graphs total):')
     for split in SPLITS:
         label = LABELS[split]
         for ep in CHECKPOINTS:
-            print(f'  accuracy_loss_{split}_ep{ep}.png  [{label} — epoch {ep}]')
-        print(f'  hyperparam_{split}.png  [{label}]')
+            print(f'  accuracy_loss_{split}_ep{ep}.png  [{label} -- epoch {ep}]')
+        print(f'  precision_{split}.png      [{label}]')
+        print(f'  recall_{split}.png         [{label}]')
+        print(f'  hyperparam_{split}.png     [{label}]')
+        print(f'  confusion_matrix_{split}.png  [{label}]')
     print('  hyperparam_comparison.png  [all splits]')
 
 
